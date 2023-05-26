@@ -10,6 +10,9 @@ import (
 
 var IsDuplicateError = errors.New("is duplicate")
 
+// Simple file storage
+// each record is stored in a new line
+// stores unique values only
 type FileDB struct {
 	Filepath string
 }
@@ -56,6 +59,8 @@ func (db *FileDB) checkExists(value string) bool {
 	return false
 }
 
+// add new value to the file
+// if the same line already exists returns IsDuplicateErrors
 func (db *FileDB) Append(value string) error {
 	// TODO: lowercase, trim whitespaces
 	if db.checkExists(value) {

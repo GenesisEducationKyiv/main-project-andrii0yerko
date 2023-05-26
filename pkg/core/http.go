@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// Methods for HTTP API endpoints
 type ExchangeRateServer struct {
 	Controller Controller
 }

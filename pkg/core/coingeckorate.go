@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// Client for the coingecko api
+// Allows to query current exchange rate of `Coin` to `Currency`
 type CoingeckoRate struct {
 	Coin, Currency string
 }
@@ -23,12 +25,12 @@ func (requester CoingeckoRate) GetValue() (float64, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("CoingeckoRate.GetValue request error", err)
 	}
 	req.Header.Set("accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("CoingeckoRate.GetValue api error", err)
 	}
 	defer resp.Body.Close()
 	var rateJson struct {
@@ -36,9 +38,8 @@ func (requester CoingeckoRate) GetValue() (float64, error) {
 	}
 	err = json.NewDecoder(resp.Body).Decode(&rateJson)
 	rate := rateJson.Bitcoin.Uah
-
 	if err != nil {
-		log.Fatal(err)
+		log.Println("CoingeckoRate.GetValue json error", err)
 	}
 
 	log.Println("get rate:", rate)

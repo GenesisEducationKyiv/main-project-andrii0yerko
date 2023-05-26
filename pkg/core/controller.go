@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// handles main logic of the App.
+// responsible for providing access to the aggregated core objects
+// and for setting up their interaction as well
 type Controller struct {
 	Receivers     Storage[string]
 	RateRequester ValueRequester[float64]

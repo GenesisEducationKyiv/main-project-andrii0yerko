@@ -6,6 +6,7 @@ import (
 	"net/smtp"
 )
 
+// Simple Sender implementation around smtp package
 type EmailSender struct {
 	From     string
 	Password string
