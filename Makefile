@@ -1,5 +1,5 @@
 build:
-	go build -o bin/bitcoin-rate-app bitcoin-rate-app
+	go build -o bin/bitcoin-rate-app ./cmd/bitcoin-rate-app
 
 run:
-	go run bitcoin-rate-app
+	go run ./cmd/bitcoin-rate-app
