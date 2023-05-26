@@ -2,7 +2,9 @@ package main
 
 import (
 	"bitcoinrateapp/pkg/core"
-	"fmt"
+	"errors"
+	"log"
+	"net/http"
 )
 
 func main() {
@@ -15,11 +17,18 @@ func main() {
 		RateRequester: requester,
 		Sender:        sender,
 	}
+	server := core.ExchangeRateServer{Controller: controller}
 
-	controller.Subscribe("test@test.com")
-	controller.Subscribe("test2@test.com")
-	value, _ := controller.GetExchangeRate()
-	fmt.Println(value)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", server.GetRoot)
+	mux.HandleFunc("/rate", server.GetRate)
+	mux.HandleFunc("/subscribe", server.PostSubscribe)
+	mux.HandleFunc("/sendEmails", server.PostSendEmails)
 
-	controller.Notify()
+	err := http.ListenAndServe(":3333", mux)
+	if errors.Is(err, http.ErrServerClosed) {
+		log.Println("server closed")
+	} else if err != nil {
+		log.Fatalf("error starting server: %s", err)
+	}
 }

@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+var IsDuplicateError = errors.New("is duplicate")
+
 type FileDB struct {
 	Filepath string
 }
@@ -57,7 +59,7 @@ func (db *FileDB) checkExists(value string) bool {
 func (db *FileDB) Append(value string) error {
 	// TODO: lowercase, trim whitespaces
 	if db.checkExists(value) {
-		return fmt.Errorf("already exists: %s", value)
+		return IsDuplicateError
 	}
 
 	file, err := os.OpenFile(db.Filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
