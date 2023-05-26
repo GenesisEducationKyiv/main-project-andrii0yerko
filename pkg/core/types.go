@@ -5,6 +5,10 @@ type Storage[T any] interface {
 	GetRecords() ([]T, error)
 }
 
-type ValueRequester interface {
-	GetValue() (float64, error)
+type ValueRequester[T any] interface {
+	GetValue() (T, error)
+}
+
+type Sender interface {
+	Send(string, string, string) error
 }
