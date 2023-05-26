@@ -20,7 +20,7 @@ func (sender EmailSender) Send(receiver string, subject, message string) error {
 	}
 
 	// Message
-	rfc822 := fmt.Sprintf("Subject: %s\n\n%s", subject, message)
+	rfc822 := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\n%s", sender.From, receiver, subject, message)
 	message_bytes := []byte(rfc822)
 
 	// Authentication
