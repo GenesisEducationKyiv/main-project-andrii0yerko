@@ -1,1 +1,13 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-718a45dd9cf7e7f842a935f5ebbe5719a5e09af4491e668f4dbf3b35d5cca122.svg)](https://classroom.github.com/online_ide?assignment_repo_id=11346028&assignment_repo_type=AssignmentRepo)
+# SE'23 School Case Task
+
+## Installation
+### Docker (preferable)
+1. build an image
+```
+docker build -t bitcoin-rate-app . --progress=plain
+```
+
+2. run a container (app uses port 3333 by default)
+```
+docker run --rm -p 3333:3333 bitcoin-rate-app
+```
