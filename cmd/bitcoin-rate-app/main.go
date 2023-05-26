@@ -17,4 +17,6 @@ func main() {
 	fmt.Println(err)
 	fmt.Println(db.GetRecords())
 
+	sender := core.EmailSender{From: "btcapp_testing@coolmail.com", Password: "", SmtpHost: "0.0.0.0", SmtpPort: "2525"}
+	sender.Send("hellothere@receiver.com", "subject", "test_message")
 }
