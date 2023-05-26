@@ -5,16 +5,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type CoingeckoRate struct {
-	coin, vs_currency string
+	Coin, Currency string
+}
+
+func (requester CoingeckoRate) GetDescription() string {
+	return fmt.Sprintf("%s to %s Exchange Rate", strings.Title(requester.Coin), strings.ToUpper(requester.Currency))
 }
 
 func (requester CoingeckoRate) GetValue() (float64, error) {
 	client := &http.Client{}
 	// https://www.coingecko.com/en/api/documentation
-	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=%s", requester.coin, requester.vs_currency)
+	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=%s", requester.Coin, requester.Currency)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

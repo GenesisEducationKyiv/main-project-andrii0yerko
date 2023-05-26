@@ -7,6 +7,7 @@ type Storage[T any] interface {
 
 type ValueRequester[T any] interface {
 	GetValue() (T, error)
+	GetDescription() string
 }
 
 type Sender interface {

@@ -6,17 +6,20 @@ import (
 )
 
 func main() {
-	// requester := CoingeckoRate{coin: "bitcoin", vs_currency: "uah"}
-	// requester.GetValue()
 	var db core.Storage[string] = &core.FileDB{Filepath: "emails.dat"}
-	err := db.Append("test@test.com")
-	fmt.Println(err)
-	err = db.Append("test2@test.com")
-	fmt.Println(err)
-	err = db.Append("test2@test.com")
-	fmt.Println(err)
-	fmt.Println(db.GetRecords())
+	var requester core.ValueRequester[float64] = &core.CoingeckoRate{Coin: "bitcoin", Currency: "uah"}
+	var sender core.Sender = &core.EmailSender{From: "btcapp_testing@coolmail.com", Password: "", SmtpHost: "0.0.0.0", SmtpPort: "2525"}
 
-	sender := core.EmailSender{From: "btcapp_testing@coolmail.com", Password: "", SmtpHost: "0.0.0.0", SmtpPort: "2525"}
-	sender.Send("hellothere@receiver.com", "subject", "test_message")
+	controller := core.Controller{
+		Receivers:     db,
+		RateRequester: requester,
+		Sender:        sender,
+	}
+
+	controller.Subscribe("test@test.com")
+	controller.Subscribe("test2@test.com")
+	value, _ := controller.GetExchangeRate()
+	fmt.Println(value)
+
+	controller.Notify()
 }
