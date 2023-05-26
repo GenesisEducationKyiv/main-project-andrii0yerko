@@ -1,7 +1,7 @@
 package main
 
 import (
-	core "bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/core"
 	"fmt"
 )
 

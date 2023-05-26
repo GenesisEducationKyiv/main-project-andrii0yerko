@@ -1,4 +1,4 @@
-package bitcoinrateapp
+package core
 
 import (
 	"bufio"
@@ -7,11 +7,6 @@ import (
 	"log"
 	"os"
 )
-
-type Storage[T any] interface {
-	Append(T) error
-	GetRecords() ([]T, error)
-}
 
 type FileDB struct {
 	Filepath string

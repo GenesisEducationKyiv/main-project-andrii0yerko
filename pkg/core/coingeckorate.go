@@ -1,4 +1,4 @@
-package bitcoinrateapp
+package core
 
 import (
 	"encoding/json"
@@ -6,10 +6,6 @@ import (
 	"log"
 	"net/http"
 )
-
-type ValueRequester interface {
-	GetValue() (float64, error)
-}
 
 type CoingeckoRate struct {
 	coin, vs_currency string
