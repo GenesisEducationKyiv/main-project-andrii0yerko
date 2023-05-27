@@ -23,3 +23,4 @@ go.work
 *.code-workspace
 bin/
 *.dat
+configs/config.yaml

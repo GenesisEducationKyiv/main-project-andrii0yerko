@@ -13,6 +13,25 @@ A simple Go http api, which allows to get a BTC to UAH exchange rate,
     docker run --rm -p 3333:3333 bitcoin-rate-app
     ```
 
+3. configure app
+
+    - Using CLI args
+        ```
+        docker run --rm -p 3333:3333 bitcoin-rate-app \
+            --sender.smtpHost="0.0.0.0" \
+            --sender.smtpPort="25" \
+            --sender.from="user@example.com" \
+            --sender.password=""  \
+            --storage.filename="emails.dat" \
+            --server.host="0.0.0.0" \
+            --server.port="3333"
+        ```
+    - Using a config file
+        ```
+        docker run --rm -v "`pwd`/configs/config.yaml":"/config.yaml" -p 3333:3333 bitcoin-rate-app
+        ```
+    You can combine both ways of configurations, CLI will have priority
+
 ### Without Docker
 1. compile an app
     ```
@@ -27,6 +46,25 @@ A simple Go http api, which allows to get a BTC to UAH exchange rate,
     bin/bitcoin-rate-app
     ```
 
+3. configure app
+
+    - Using CLI args
+        ```
+        bin/bitcoin-rate-app \
+            --sender.smtpHost="0.0.0.0" \
+            --sender.smtpPort="25" \
+            --sender.from="user@example.com" \
+            --sender.password=""  \
+            --storage.filename="emails.dat" \
+            --server.host="0.0.0.0" \
+            --server.port="3333"
+        ```
+    - Using a config file
+        ```
+        bin/bitcoin-rate-app --config configs/config.yaml
+        ```
+    You can combine both ways of configurations, CLI will have priority
+
 ### Development run
 - Use
     ```
@@ -34,8 +72,11 @@ A simple Go http api, which allows to get a BTC to UAH exchange rate,
     ```
     or
     ```
-    go run
+    go run ./cmd/bitcoin-rate-app
     ```
+
+## Configuration
+Please see [`./configs/template_configs.yaml`](./configs/template_configs.yaml) for list of all configurable parameters
 
 ## Usage
 Documentation for the endpoints can be found in `docs/` folder. Postman collection provided in `test/` directory as well
