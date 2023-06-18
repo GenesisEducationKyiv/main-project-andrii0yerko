@@ -7,10 +7,13 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+const readTimeout = 3 * time.Second
 
 // Load app configuration from both config file and command line args
 // Custom config path can be passed with `--config path/to/my/config.yaml`
@@ -30,23 +33,32 @@ func parseConfiguration() {
 	pflag.Parse()
 
 	// Bind command line flags to Viper
-	viper.BindPFlags(pflag.CommandLine)
+	err := viper.BindPFlags(pflag.CommandLine)
+	if err != nil {
+		log.Fatalf("Error binding flags: %s", err)
+	}
 
 	// Set up the config file name and path
 	configWithoutExt := strings.Split(viper.GetString("config"), ".")[0]
 	viper.SetConfigName(configWithoutExt)
 	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
+	err = viper.ReadInConfig()
 	if err != nil {
-		fmt.Printf("Error reading config file: %s\n", err)
+		log.Fatalf("Error reading config file: %s\n", err)
 	}
 	// Ensure that all required values are given
-	for _, field := range []string{"sender.smtpHost", "sender.smtpPort", "sender.from", "storage.filename", "server.host", "server.port"} {
+	for _, field := range []string{
+		"sender.smtpHost", "sender.smtpPort", "sender.from", "storage.filename", "server.host", "server.port",
+	} {
 		if viper.GetString(field) == "" {
-			log.Fatalf("\"%s\" value is missing! Please pass it as CLI arg with \"--%s value\", or add it to the config file with the same key name!", field, field)
+			log.Fatalf(
+				"\"%s\" value is missing! Please pass it as CLI arg with \"--%s value\","+
+					" or add it to the config file with the same key name!",
+				field,
+				field,
+			)
 		}
 	}
-
 }
 
 // Factory that initialize Controller class that handles app main logic based on read configuration
@@ -59,7 +71,7 @@ func createController() core.Controller {
 
 	var db core.Storage[string] = &core.FileDB{Filepath: filename}
 	var requester core.ValueRequester[float64] = &core.CoingeckoRate{Coin: "bitcoin", Currency: "uah"}
-	var sender core.Sender = &core.EmailSender{From: from, Password: password, SmtpHost: smtpHost, SmtpPort: smtpPort}
+	var sender core.Sender = &core.EmailSender{From: from, Password: password, SMTPHost: smtpHost, SMTPPort: smtpPort}
 
 	controller := core.Controller{
 		Receivers:     db,
@@ -82,7 +94,8 @@ func main() {
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
 	log.Printf("Running on http://%s\n", addr)
-	err := http.ListenAndServe(addr, mux)
+	httpServer := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: readTimeout}
+	err := httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		log.Println("server closed")
 	} else if err != nil {

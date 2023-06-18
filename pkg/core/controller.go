@@ -39,8 +39,12 @@ func (c Controller) Notify() error {
 		return err
 	}
 	for _, receiver := range receivers {
-		c.Sender.Send(receiver, subject, message)
+		sendErr := c.Sender.Send(receiver, subject, message)
+		if sendErr != nil {
+			log.Println(sendErr)
+			err = sendErr
+		}
 	}
 
-	return nil
+	return err
 }

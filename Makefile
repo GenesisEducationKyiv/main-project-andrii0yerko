@@ -3,3 +3,6 @@ build:
 
 run:
 	go run ./cmd/bitcoin-rate-app --config configs/config.yaml
+
+lint:
+	golangci-lint run
