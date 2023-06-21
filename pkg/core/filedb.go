@@ -13,18 +13,22 @@ var ErrIsDuplicate = errors.New("is duplicate")
 // each record is stored in a new line
 // stores unique values only
 type FileDB struct {
-	Filepath string
+	filepath string
+}
+
+func NewFileDB(filepath string) *FileDB {
+	return &FileDB{filepath: filepath}
 }
 
 func (db *FileDB) GetRecords() ([]string, error) {
 	var records []string
-	if _, err := os.Stat(db.Filepath); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(db.filepath); errors.Is(err, os.ErrNotExist) {
 		// path/to/whatever does not exist
 		log.Println("file does not exists")
 		return records, nil
 	}
 
-	file, err := os.Open(db.Filepath)
+	file, err := os.Open(db.filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +69,7 @@ func (db *FileDB) Append(value string) error {
 		return ErrIsDuplicate
 	}
 
-	file, err := os.OpenFile(db.Filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(db.filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("failed creating file: %s", err)
 		return err

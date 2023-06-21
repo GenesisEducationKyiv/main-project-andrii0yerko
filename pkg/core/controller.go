@@ -6,6 +6,23 @@ import (
 	"strings"
 )
 
+// An abstract storage which allows to read and add values
+type Storage[T any] interface {
+	Append(T) error
+	GetRecords() ([]T, error)
+}
+
+// Abstract requester which allows to extract a specific value, and its description
+type ValueRequester[T any] interface {
+	GetValue() (T, error)
+	GetDescription() string
+}
+
+// Defines behavior of sending data for the users
+type Sender interface {
+	Send(receiver string, subject string, message string) error
+}
+
 // handles main logic of the App.
 // responsible for providing access to the aggregated core objects
 // and for setting up their interaction as well
@@ -16,9 +33,9 @@ type Controller struct {
 }
 
 func NewController(smtpPort, smtpHost, from, password, filename string) Controller {
-	var db Storage[string] = &FileDB{Filepath: filename}
-	var requester ValueRequester[float64] = &CoingeckoRate{Coin: "bitcoin", Currency: "uah"}
-	var sender Sender = &EmailSender{From: from, Password: password, SMTPHost: smtpHost, SMTPPort: smtpPort}
+	var db Storage[string] = NewFileDB(filename)
+	var requester ValueRequester[float64] = NewCoingeckoRate("bitcoin", "uah")
+	var sender Sender = NewEmailSender(from, password, smtpHost, smtpPort)
 
 	controller := Controller{
 		receivers:     db,

@@ -8,19 +8,28 @@ import (
 
 // Simple Sender implementation around smtp package
 type EmailSender struct {
-	From     string
-	Password string
-	SMTPHost string
-	SMTPPort string
+	from     string
+	password string
+	smtpHost string
+	smtpPort string
+}
+
+func NewEmailSender(from, password, smtpHost, smtpPort string) EmailSender {
+	return EmailSender{
+		from:     from,
+		password: password,
+		smtpHost: smtpHost,
+		smtpPort: smtpPort,
+	}
 }
 
 func (sender EmailSender) authentication() smtp.Auth {
 	// Authentication
 	var auth smtp.Auth
-	if sender.Password == "" {
+	if sender.password == "" {
 		auth = nil
 	} else {
-		auth = smtp.PlainAuth("", sender.From, sender.Password, sender.SMTPHost)
+		auth = smtp.PlainAuth("", sender.from, sender.password, sender.smtpHost)
 	}
 	return auth
 }
@@ -32,11 +41,11 @@ func (sender EmailSender) Send(receiver string, subject, message string) error {
 	}
 
 	// Message
-	rfc822 := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\n%s", sender.From, receiver, subject, message)
+	rfc822 := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\n%s", sender.from, receiver, subject, message)
 	messageBytes := []byte(rfc822)
 
 	// Sending email
-	err := smtp.SendMail(sender.SMTPHost+":"+sender.SMTPPort, sender.authentication(), sender.From, to, messageBytes)
+	err := smtp.SendMail(sender.smtpHost+":"+sender.smtpPort, sender.authentication(), sender.from, to, messageBytes)
 	if err != nil {
 		log.Println(err)
 		return err
