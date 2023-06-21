@@ -3,6 +3,9 @@ FROM golang:1.20-alpine as build-stage
 RUN apk --no-cache add ca-certificates
 WORKDIR /go/delivery/bitcoin-rate-app
 
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -buildvcs=false -o /bitcoin-rate-app ./cmd/bitcoin-rate-app
