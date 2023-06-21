@@ -100,4 +100,4 @@ complete the assignment on your own.
 Please see [`./configs/template_configs.yaml`](./configs/template_configs.yaml) for list of all configurable parameters
 
 ## Usage
-Documentation for the endpoints can be found in [`docs/`](./docs/) folder. Postman collection provided in [`test/`](./test/) directory as well
+Documentation for the endpoints can be found in [`api/`](./api/) folder. Postman collection provided in [`test/`](./test/) directory as well
