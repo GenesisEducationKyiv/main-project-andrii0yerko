@@ -1,6 +1,7 @@
-package core
+package http
 
 import (
+	"bitcoinrateapp/pkg/core"
 	"encoding/json"
 	"errors"
 	"log"
@@ -8,17 +9,21 @@ import (
 )
 
 // Methods for HTTP API endpoints
-type ExchangeRateServer struct {
-	Controller Controller
+type ExchangeRateHandler struct {
+	Controller core.Controller
 }
 
-func (e ExchangeRateServer) GetRoot(w http.ResponseWriter, _ *http.Request) {
+func NewExchangeRateHandler(controller core.Controller) *ExchangeRateHandler {
+	return &ExchangeRateHandler{Controller: controller}
+}
+
+func (e ExchangeRateHandler) GetRoot(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusTeapot)
 }
 
 // Return current exchange rate
 // Accepts GET, returns rate value and StatusOK
-func (e ExchangeRateServer) GetRate(w http.ResponseWriter, r *http.Request) {
+func (e ExchangeRateHandler) GetRate(w http.ResponseWriter, r *http.Request) {
 	if len(r.Method) > 0 && r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -46,7 +51,7 @@ func (e ExchangeRateServer) GetRate(w http.ResponseWriter, r *http.Request) {
 
 // Subscribes an email to the rate notification
 // Accepts POST, returns StatusOK if the email was not subscribed before and StatusConflict otherwise
-func (e ExchangeRateServer) PostSubscribe(w http.ResponseWriter, r *http.Request) {
+func (e ExchangeRateHandler) PostSubscribe(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -60,7 +65,7 @@ func (e ExchangeRateServer) PostSubscribe(w http.ResponseWriter, r *http.Request
 	err := e.Controller.Subscribe(email)
 	if err != nil {
 		switch {
-		case errors.Is(err, ErrIsDuplicate):
+		case errors.Is(err, core.ErrIsDuplicate):
 			w.WriteHeader(http.StatusConflict)
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
@@ -72,7 +77,7 @@ func (e ExchangeRateServer) PostSubscribe(w http.ResponseWriter, r *http.Request
 
 // Send email with current rate to all the subscribers
 // Accepts POST, returns StatusOK if the email was not subscribed before and StatusConflict otherwise
-func (e ExchangeRateServer) PostSendEmails(w http.ResponseWriter, r *http.Request) {
+func (e ExchangeRateHandler) PostSendEmails(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return

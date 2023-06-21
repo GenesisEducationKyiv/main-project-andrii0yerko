@@ -2,19 +2,16 @@ package main
 
 import (
 	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/http"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log"
-	"net/http"
 	"strings"
-	"time"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
-
-const readTimeout = 3 * time.Second
 
 // Load app configuration from both config file and command line args
 // Custom config path can be passed with `--config path/to/my/config.yaml`
@@ -70,41 +67,20 @@ func parseConfiguration() {
 	}
 }
 
-// Factory that initialize Controller class that handles app main logic based on read configuration
-func createController() core.Controller {
+func main() {
+	parseConfiguration()
 	smtpPort := viper.GetString("sender.smtpPort")
 	smtpHost := viper.GetString("sender.smtpHost")
 	from := viper.GetString("sender.from")
 	password := viper.GetString("sender.password")
 	filename := viper.GetString("storage.filename")
 
-	var db core.Storage[string] = &core.FileDB{Filepath: filename}
-	var requester core.ValueRequester[float64] = &core.CoingeckoRate{Coin: "bitcoin", Currency: "uah"}
-	var sender core.Sender = &core.EmailSender{From: from, Password: password, SMTPHost: smtpHost, SMTPPort: smtpPort}
-
-	controller := core.Controller{
-		Receivers:     db,
-		RateRequester: requester,
-		Sender:        sender,
-	}
-	return controller
-}
-
-func main() {
-	parseConfiguration()
-	controller := createController()
-	server := core.ExchangeRateServer{Controller: controller}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", server.GetRoot)
-	mux.HandleFunc("/rate", server.GetRate)
-	mux.HandleFunc("/subscribe", server.PostSubscribe)
-	mux.HandleFunc("/sendEmails", server.PostSendEmails)
-
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
-	log.Printf("Running on http://%s\n", addr)
-	httpServer := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: readTimeout}
-	err := httpServer.ListenAndServe()
+	controller := core.NewController(smtpPort, smtpHost, from, password, filename)
+	handler := http.NewExchangeRateHandler(controller)
+	server := http.NewServer(handler, addr)
+
+	err := server.Start()
 	if errors.Is(err, http.ErrServerClosed) {
 		log.Println("server closed")
 	} else if err != nil {
