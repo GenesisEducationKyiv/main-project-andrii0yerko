@@ -29,7 +29,7 @@ complete the assignment on your own.
     docker build -t bitcoin-rate-app . --progress=plain
     ```
 
-2. Run a container (app uses port 3333 by default)
+2. Run a container (the app uses port 3333 by default)
     ```
     docker run --rm -p 3333:3333 bitcoin-rate-app
     ```
@@ -47,11 +47,27 @@ complete the assignment on your own.
             --server.host="0.0.0.0" \
             --server.port="3333"
         ```
+    - Using environmental variables
+        ```
+        docker run --rm -p 3333:3333 \
+            -e BTCAPP_SENDER_SMTPHOST="0.0.0.0" \
+            -e BTCAPP_SENDER_SMTPPORT="25" \
+            -e BTCAPP_SENDER_FROM="user@example.com" \
+            -e BTCAPP_SENDER_PASSWORD="" \
+            -e BTCAPP_STORAGE_FILENAME="emails.dat" \
+            -e BTCAPP_SERVER_HOST="0.0.0.0" \
+            -e BTCAPP_SERVER_PORT="3333" \
+            bitcoin-rate-app
+        ```
+
     - Using a config file
         ```
         docker run --rm -v "`pwd`/configs/config.yaml":"/config.yaml" -p 3333:3333 bitcoin-rate-app
         ```
-    You can combine both ways of configurations, CLI will have priority
+    You can combine different ways of configurations, priority will be the following:
+    1. CLI
+    2. ENV variables
+    3. config file
 
 ### Without Docker
 1. Compile an app
@@ -80,11 +96,28 @@ complete the assignment on your own.
             --server.host="0.0.0.0" \
             --server.port="3333"
         ```
+    
+    - Using environmental variables
+        ```
+        export BTCAPP_SENDER_SMTPHOST="0.0.0.0"
+        export BTCAPP_SENDER_SMTPPORT="25"
+        export BTCAPP_SENDER_FROM="user@example.com"
+        export BTCAPP_SENDER_PASSWORD=""
+        export BTCAPP_STORAGE_FILENAME="emails.dat"
+        export BTCAPP_SERVER_HOST="0.0.0.0"
+        export BTCAPP_SERVER_PORT="3333"
+
+        bin/bitcoin-rate-app
+        ```
+
     - Using a config file
         ```
         bin/bitcoin-rate-app --config configs/config.yaml
         ```
-    You can combine both ways of configurations, CLI will have priority
+    You can combine different ways of configurations, priority will be the following:
+    1. CLI
+    2. ENV variables
+    3. config file
 
 ### Development run
 - Use
@@ -97,7 +130,7 @@ complete the assignment on your own.
     ```
 
 ## Configuration
-Please see [`./configs/template_configs.yaml`](./configs/template_configs.yaml) for list of all configurable parameters
+Please see [`./configs/template_configs.yaml`](./configs/template_configs.yaml) for a list of all configurable parameters
 
 ## Usage
 Documentation for the endpoints can be found in [`docs/`](./docs/) folder. Postman collection provided in [`test/`](./test/) directory as well
