@@ -4,6 +4,7 @@ import (
 	"bitcoinrateapp/pkg/core"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"strings"
@@ -43,11 +44,11 @@ func parseConfiguration() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// Set up the config file name and path
-	configWithoutExt := strings.Split(viper.GetString("config"), ".")[0]
-	viper.SetConfigName(configWithoutExt)
+	viper.SetConfigFile(viper.GetString("config"))
 	viper.AddConfigPath(".")
 	if err = viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok { //nolint:errorlint,lll // this is recommended way to do this: https://github.com/spf13/viper#reading-config-files
+		var notExists *fs.PathError
+		if errors.As(err, &notExists) {
 			log.Printf("Warning: %s\n", err)
 		} else {
 			log.Fatalf("Error reading config file: %s\n", err)
