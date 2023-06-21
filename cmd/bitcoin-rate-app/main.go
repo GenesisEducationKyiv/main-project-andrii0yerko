@@ -38,14 +38,22 @@ func parseConfiguration() {
 		log.Fatalf("Error binding flags: %s", err)
 	}
 
+	viper.SetEnvPrefix("BTCAPP")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
 	// Set up the config file name and path
 	configWithoutExt := strings.Split(viper.GetString("config"), ".")[0]
 	viper.SetConfigName(configWithoutExt)
 	viper.AddConfigPath(".")
-	err = viper.ReadInConfig()
-	if err != nil {
-		log.Fatalf("Error reading config file: %s\n", err)
+	if err = viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok { //nolint:errorlint,lll // this is recommended way to do this: https://github.com/spf13/viper#reading-config-files
+			log.Printf("Warning: %s\n", err)
+		} else {
+			log.Fatalf("Error reading config file: %s\n", err)
+		}
 	}
+
 	// Ensure that all required values are given
 	for _, field := range []string{
 		"sender.smtpHost", "sender.smtpPort", "sender.from", "storage.filename", "server.host", "server.port",
