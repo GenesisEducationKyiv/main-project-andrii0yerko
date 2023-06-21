@@ -56,8 +56,8 @@ func (e ExchangeRateServer) PostSubscribe(w http.ResponseWriter, r *http.Request
 	if email == "" {
 		return
 	}
-	err := e.Controller.Subscribe(email)
 
+	err := e.Controller.Subscribe(email)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrIsDuplicate):
@@ -79,7 +79,6 @@ func (e ExchangeRateServer) PostSendEmails(w http.ResponseWriter, r *http.Reques
 	}
 	log.Printf("got PostSendEmails request\n")
 	err := e.Controller.Notify()
-
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
