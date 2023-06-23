@@ -20,7 +20,7 @@ func NewFileDB(filepath string) *FileDB {
 	return &FileDB{filepath: filepath}
 }
 
-func (db *FileDB) GetRecords() ([]string, error) {
+func (db *FileDB) Records() ([]string, error) {
 	var records []string
 	if _, err := os.Stat(db.filepath); errors.Is(err, os.ErrNotExist) {
 		// path/to/whatever does not exist
@@ -47,7 +47,7 @@ func (db *FileDB) GetRecords() ([]string, error) {
 }
 
 func (db *FileDB) checkExists(value string) bool {
-	records, err := db.GetRecords()
+	records, err := db.Records()
 	if err != nil {
 		log.Println("Error:", err)
 		return false

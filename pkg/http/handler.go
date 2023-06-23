@@ -29,7 +29,7 @@ func (e ExchangeRateHandler) GetRate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("got GetRate request\n")
-	value, err := e.Controller.GetExchangeRate()
+	value, err := e.Controller.ExchangeRate()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

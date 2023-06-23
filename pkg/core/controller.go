@@ -9,13 +9,13 @@ import (
 // An abstract storage which allows to read and add values
 type Storage[T any] interface {
 	Append(T) error
-	GetRecords() ([]T, error)
+	Records() ([]T, error)
 }
 
 // Abstract requester which allows to extract a specific value, and its description
 type ValueRequester[T any] interface {
-	GetValue() (T, error)
-	GetDescription() string
+	Value() (T, error)
+	Description() string
 }
 
 // Defines behavior of sending data for the users
@@ -45,8 +45,8 @@ func NewController(smtpPort, smtpHost, from, password, filename string) Controll
 	return controller
 }
 
-func (c Controller) GetExchangeRate() (float64, error) {
-	return c.rateRequester.GetValue()
+func (c Controller) ExchangeRate() (float64, error) {
+	return c.rateRequester.Value()
 }
 
 func (c Controller) Subscribe(receiver string) error {
@@ -55,15 +55,15 @@ func (c Controller) Subscribe(receiver string) error {
 }
 
 func (c Controller) Notify() error {
-	value, err := c.GetExchangeRate()
+	value, err := c.ExchangeRate()
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	subject := c.rateRequester.GetDescription()
+	subject := c.rateRequester.Description()
 	message := fmt.Sprintf("%f", value)
 
-	receivers, err := c.receivers.GetRecords()
+	receivers, err := c.receivers.Records()
 	if err != nil {
 		log.Println(err)
 		return err

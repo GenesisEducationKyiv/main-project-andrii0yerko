@@ -26,11 +26,11 @@ func NewCoingeckoRate(coin, currency string) *CoingeckoRate {
 	}
 }
 
-func (requester CoingeckoRate) GetDescription() string {
+func (requester CoingeckoRate) Description() string {
 	return requester.description
 }
 
-func (requester CoingeckoRate) GetValue() (float64, error) {
+func (requester CoingeckoRate) Value() (float64, error) {
 	client := &http.Client{}
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
@@ -41,13 +41,13 @@ func (requester CoingeckoRate) GetValue() (float64, error) {
 
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
 	if err != nil {
-		log.Println("CoingeckoRate.GetValue request error", err)
+		log.Println("CoingeckoRate.Value request error", err)
 	}
 	req.Header.Set("accept", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("CoingeckoRate.GetValue api error", err)
+		log.Println("CoingeckoRate.Value api error", err)
 	}
 
 	defer resp.Body.Close()
@@ -55,7 +55,7 @@ func (requester CoingeckoRate) GetValue() (float64, error) {
 	err = json.NewDecoder(resp.Body).Decode(&rateJSON)
 	rate := rateJSON[requester.coin][requester.currency]
 	if err != nil {
-		log.Println("CoingeckoRate.GetValue json error", err)
+		log.Println("CoingeckoRate.Value json error", err)
 	}
 
 	log.Println("get rate:", rate)
