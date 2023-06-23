@@ -13,6 +13,7 @@ import (
 // Allows to query current exchange rate of `Coin` to `Currency`
 type CoingeckoRate struct {
 	coin, currency string
+	client         *http.Client
 	description    string
 }
 
@@ -23,6 +24,7 @@ func NewCoingeckoRate(coin, currency string) *CoingeckoRate {
 		coin:        coin,
 		currency:    currency,
 		description: description,
+		client:      &http.Client{},
 	}
 }
 
@@ -31,7 +33,6 @@ func (requester CoingeckoRate) Description() string {
 }
 
 func (requester CoingeckoRate) Value(ctx context.Context) (float64, error) {
-	client := &http.Client{}
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
 		"https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=%s",
@@ -45,7 +46,7 @@ func (requester CoingeckoRate) Value(ctx context.Context) (float64, error) {
 	}
 	req.Header.Set("accept", "application/json")
 
-	resp, err := client.Do(req)
+	resp, err := requester.client.Do(req)
 	if err != nil {
 		log.Println("CoingeckoRate.Value api error", err)
 	}
