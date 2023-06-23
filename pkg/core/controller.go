@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -14,7 +15,7 @@ type Storage[T any] interface {
 
 // Abstract requester which allows to extract a specific value, and its description
 type ValueRequester[T any] interface {
-	Value() (T, error)
+	Value(context.Context) (T, error)
 	Description() string
 }
 
@@ -46,7 +47,7 @@ func NewController(smtpPort, smtpHost, from, password, filename string) Controll
 }
 
 func (c Controller) ExchangeRate() (float64, error) {
-	return c.rateRequester.Value()
+	return c.rateRequester.Value(context.TODO())
 }
 
 func (c Controller) Subscribe(receiver string) error {

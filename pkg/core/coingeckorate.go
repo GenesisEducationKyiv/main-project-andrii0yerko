@@ -30,7 +30,7 @@ func (requester CoingeckoRate) Description() string {
 	return requester.description
 }
 
-func (requester CoingeckoRate) Value() (float64, error) {
+func (requester CoingeckoRate) Value(ctx context.Context) (float64, error) {
 	client := &http.Client{}
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
@@ -39,7 +39,7 @@ func (requester CoingeckoRate) Value() (float64, error) {
 		requester.currency,
 	)
 
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		log.Println("CoingeckoRate.Value request error", err)
 	}
