@@ -63,15 +63,13 @@ func (e ExchangeRateHandler) PostSubscribe(w http.ResponseWriter, r *http.Reques
 	}
 
 	err := e.Controller.Subscribe(email)
-	if err != nil {
-		switch {
-		case errors.Is(err, core.ErrIsDuplicate):
-			w.WriteHeader(http.StatusConflict)
-		default:
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	} else {
+	switch {
+	case err == nil:
 		w.WriteHeader(http.StatusOK)
+	case errors.Is(err, core.ErrIsDuplicate):
+		w.WriteHeader(http.StatusConflict)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
@@ -86,7 +84,7 @@ func (e ExchangeRateHandler) PostSendEmails(w http.ResponseWriter, r *http.Reque
 	err := e.Controller.Notify()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-	} else {
-		w.WriteHeader(http.StatusOK)
+		return
 	}
+	w.WriteHeader(http.StatusOK)
 }
