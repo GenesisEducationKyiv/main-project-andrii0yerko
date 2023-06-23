@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+type coingeckoResponse map[string]map[string]float64
+
 // Client for the coingecko api
 // Allows to query current exchange rate of `Coin` to `Currency`
 type CoingeckoRate struct {
@@ -52,7 +54,7 @@ func (requester CoingeckoRate) Value(ctx context.Context) (float64, error) {
 	}
 
 	defer resp.Body.Close()
-	var rateJSON = make(map[string]map[string]float64)
+	var rateJSON coingeckoResponse
 	err = json.NewDecoder(resp.Body).Decode(&rateJSON)
 	rate := rateJSON[requester.coin][requester.currency]
 	if err != nil {
