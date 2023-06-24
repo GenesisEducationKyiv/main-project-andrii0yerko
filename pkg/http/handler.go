@@ -10,10 +10,10 @@ import (
 
 // Methods for HTTP API endpoints
 type ExchangeRateHandler struct {
-	Controller core.Controller
+	Controller *core.Controller
 }
 
-func NewExchangeRateHandler(controller core.Controller) *ExchangeRateHandler {
+func NewExchangeRateHandler(controller *core.Controller) *ExchangeRateHandler {
 	return &ExchangeRateHandler{Controller: controller}
 }
 

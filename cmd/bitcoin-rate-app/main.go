@@ -76,11 +76,14 @@ func main() {
 	filename := viper.GetString("storage.filename")
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
-	controller := core.NewController(smtpPort, smtpHost, from, password, filename)
+	controller, err := core.NewController(smtpPort, smtpHost, from, password, filename)
+	if err != nil {
+		log.Fatalf("error creating controller: %s", err)
+	}
 	handler := http.NewExchangeRateHandler(controller)
 	server := http.NewServer(handler, addr)
 
-	err := server.Start()
+	err = server.Start()
 	if errors.Is(err, http.ErrServerClosed) {
 		log.Println("server closed")
 	} else if err != nil {

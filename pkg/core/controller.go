@@ -33,17 +33,23 @@ type Controller struct {
 	sender        Sender
 }
 
-func NewController(smtpPort, smtpHost, from, password, filename string) Controller {
-	var db Storage[string] = NewFileDB(filename)
+func NewController(smtpPort, smtpHost, from, password, filename string) (*Controller, error) {
+	var db Storage[string]
+	var err error
+	db, err = NewFileDB(filename)
+	if err != nil {
+		return nil, err
+	}
+
 	var requester ValueRequester[float64] = NewCoingeckoRate("bitcoin", "uah")
 	var sender Sender = NewEmailSender(from, password, smtpHost, smtpPort)
 
-	controller := Controller{
+	controller := &Controller{
 		receivers:     db,
 		rateRequester: requester,
 		sender:        sender,
 	}
-	return controller
+	return controller, nil
 }
 
 func (c Controller) ExchangeRate() (float64, error) {

@@ -13,28 +13,25 @@ var ErrIsDuplicate = errors.New("is duplicate")
 // each record is stored in a new line
 // stores unique values only
 type FileDB struct {
-	filepath string
+	file *os.File
 }
 
-func NewFileDB(filepath string) *FileDB {
-	return &FileDB{filepath: filepath}
+func NewFileDB(filepath string) (*FileDB, error) {
+	file, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		return nil, err
+	}
+	return &FileDB{file: file}, nil
 }
 
 func (db *FileDB) Records() ([]string, error) {
 	var records []string
-	if _, err := os.Stat(db.filepath); errors.Is(err, os.ErrNotExist) {
-		// path/to/whatever does not exist
-		log.Println("file does not exists")
-		return records, nil
-	}
-
-	file, err := os.Open(db.filepath)
+	_, err := db.file.Seek(0, 0)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(db.file)
 	for scanner.Scan() {
 		records = append(records, scanner.Text())
 	}
@@ -69,19 +66,16 @@ func (db *FileDB) Append(value string) error {
 		return ErrIsDuplicate
 	}
 
-	file, err := os.OpenFile(db.filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	datawriter := bufio.NewWriter(db.file)
+	_, err := datawriter.WriteString(value + "\n")
 	if err != nil {
-		log.Fatalf("failed creating file: %s", err)
+		log.Printf("writing file: %s", err)
 		return err
 	}
-	defer file.Close()
-
-	datawriter := bufio.NewWriter(file)
-	_, err = datawriter.WriteString(value + "\n")
+	err = datawriter.Flush()
 	if err != nil {
-		log.Printf("failed reading file: %s", err)
+		log.Printf("flushing file: %s", err)
 		return err
 	}
-	datawriter.Flush()
 	return nil
 }
