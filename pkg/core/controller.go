@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -75,13 +76,18 @@ func (c Controller) Notify() error {
 		log.Println(err)
 		return err
 	}
+
+	sendErrs := make([]error, 0, len(receivers))
 	for _, receiver := range receivers {
 		sendErr := c.sender.Send(receiver, subject, message)
 		if sendErr != nil {
 			log.Println(sendErr)
-			err = sendErr
+			sendErrs = append(sendErrs, sendErr)
 		}
 	}
-
-	return err
+	if len(sendErrs) > 0 {
+		err = errors.Join(sendErrs...)
+		return err
+	}
+	return nil
 }
