@@ -2,7 +2,7 @@ package core_test
 
 import (
 	"bitcoinrateapp/pkg/core"
-	"context"
+	"bitcoinrateapp/pkg/testenv"
 	"errors"
 	"fmt"
 	"testing"
@@ -33,18 +33,6 @@ func (m *MockFilledDB) Append(_ string) error {
 	return m.expectedError
 }
 
-type MockRate struct {
-	expectedRate float64
-}
-
-func (m *MockRate) Value(_ context.Context) (float64, error) {
-	return m.expectedRate, nil
-}
-
-func (m *MockRate) Description() string {
-	return "mock rate"
-}
-
 type MockSender struct {
 	receivedValues []string
 	lastSubject    string
@@ -60,7 +48,7 @@ func (m *MockSender) Send(receiver string, subject, message string) error {
 
 func TestServiceRate(t *testing.T) {
 	rate := 100.0
-	service := core.NewService(nil, &MockRate{expectedRate: rate}, nil)
+	service := core.NewService(nil, &testenv.MockRate{ExpectedRate: rate}, nil)
 	actualRate, err := service.ExchangeRate()
 	if err != nil {
 		t.Fatal(err)
@@ -106,7 +94,7 @@ func TestServiceNotify(t *testing.T) {
 	receivers := []string{"abc@abc.test", "abc2@abc.test"}
 	rate := 100.0
 	db := &MockDB{records: receivers}
-	rateProvider := &MockRate{expectedRate: rate}
+	rateProvider := &testenv.MockRate{ExpectedRate: rate}
 	sender := &MockSender{}
 	service := core.NewService(db, rateProvider, sender)
 

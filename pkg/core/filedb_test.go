@@ -2,29 +2,15 @@ package core_test
 
 import (
 	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/testenv"
 	"errors"
-	"os"
 	"testing"
 )
-
-func NewFileDB(t *testing.T) *core.FileDB {
-	file, err := os.CreateTemp(os.TempDir(), "prefix")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { os.Remove(file.Name()) })
-
-	db, err := core.NewFileDB(file.Name())
-	if err != nil {
-		t.Fatal(err)
-	}
-	return db
-}
 
 func TestAddNewToFileDB(t *testing.T) {
 	value := "test@email.org"
 
-	db := NewFileDB(t)
+	db := testenv.NewTemporaryFileDB(t)
 	err := db.Append(value)
 	if err != nil {
 		t.Error(err)
@@ -43,7 +29,7 @@ func TestAddNewToFileDB(t *testing.T) {
 func TestAddDuplicateToFileDB(t *testing.T) {
 	value := "test@email.org"
 
-	db := NewFileDB(t)
+	db := testenv.NewTemporaryFileDB(t)
 	err := db.Append(value)
 	if err != nil {
 		t.Error(err)
