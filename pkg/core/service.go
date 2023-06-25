@@ -28,13 +28,13 @@ type Sender interface {
 // handles main logic of the App.
 // responsible for providing access to the aggregated core objects
 // and for setting up their interaction as well
-type Controller struct {
+type Service struct {
 	receivers     Storage[string]
 	rateRequester ValueRequester[float64]
 	sender        Sender
 }
 
-func NewController(smtpPort, smtpHost, from, password, filename string) (*Controller, error) {
+func NewService(smtpPort, smtpHost, from, password, filename string) (*Service, error) {
 	var db Storage[string]
 	var err error
 	db, err = NewFileDB(filename)
@@ -45,33 +45,33 @@ func NewController(smtpPort, smtpHost, from, password, filename string) (*Contro
 	var requester ValueRequester[float64] = NewCoingeckoRate("bitcoin", "uah")
 	var sender Sender = NewEmailSender(from, password, smtpHost, smtpPort)
 
-	controller := &Controller{
+	service := &Service{
 		receivers:     db,
 		rateRequester: requester,
 		sender:        sender,
 	}
-	return controller, nil
+	return service, nil
 }
 
-func (c Controller) ExchangeRate() (float64, error) {
-	return c.rateRequester.Value(context.TODO())
+func (s Service) ExchangeRate() (float64, error) {
+	return s.rateRequester.Value(context.TODO())
 }
 
-func (c Controller) Subscribe(receiver string) error {
+func (s Service) Subscribe(receiver string) error {
 	receiver = strings.ToLower(strings.TrimSpace(receiver))
-	return c.receivers.Append(receiver)
+	return s.receivers.Append(receiver)
 }
 
-func (c Controller) Notify() error {
-	value, err := c.ExchangeRate()
+func (s Service) Notify() error {
+	value, err := s.ExchangeRate()
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	subject := c.rateRequester.Description()
+	subject := s.rateRequester.Description()
 	message := fmt.Sprintf("%f", value)
 
-	receivers, err := c.receivers.Records()
+	receivers, err := s.receivers.Records()
 	if err != nil {
 		log.Println(err)
 		return err
@@ -79,7 +79,7 @@ func (c Controller) Notify() error {
 
 	sendErrs := make([]error, 0, len(receivers))
 	for _, receiver := range receivers {
-		sendErr := c.sender.Send(receiver, subject, message)
+		sendErr := s.sender.Send(receiver, subject, message)
 		if sendErr != nil {
 			log.Println(sendErr)
 			sendErrs = append(sendErrs, sendErr)

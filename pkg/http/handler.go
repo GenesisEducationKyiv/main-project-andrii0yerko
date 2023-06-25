@@ -10,11 +10,11 @@ import (
 
 // Methods for HTTP API endpoints
 type ExchangeRateHandler struct {
-	Controller *core.Controller
+	Service *core.Service
 }
 
-func NewExchangeRateHandler(controller *core.Controller) *ExchangeRateHandler {
-	return &ExchangeRateHandler{Controller: controller}
+func NewExchangeRateHandler(service *core.Service) *ExchangeRateHandler {
+	return &ExchangeRateHandler{Service: service}
 }
 
 func (e ExchangeRateHandler) GetRoot(w http.ResponseWriter, _ *http.Request) {
@@ -29,7 +29,7 @@ func (e ExchangeRateHandler) GetRate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("got GetRate request\n")
-	value, err := e.Controller.ExchangeRate()
+	value, err := e.Service.ExchangeRate()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -62,7 +62,7 @@ func (e ExchangeRateHandler) PostSubscribe(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := e.Controller.Subscribe(email)
+	err := e.Service.Subscribe(email)
 	switch {
 	case err == nil:
 		w.WriteHeader(http.StatusOK)
@@ -81,7 +81,7 @@ func (e ExchangeRateHandler) PostSendEmails(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	log.Printf("got PostSendEmails request\n")
-	err := e.Controller.Notify()
+	err := e.Service.Notify()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
