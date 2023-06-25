@@ -47,6 +47,7 @@ func (e ExchangeRateHandler) GetRate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 }
 
 // Subscribes an email to the rate notification
@@ -71,6 +72,7 @@ func (e ExchangeRateHandler) PostSubscribe(w http.ResponseWriter, r *http.Reques
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+	w.Header().Set("Content-Type", "application/json")
 }
 
 // Send email with current rate to all the subscribers
@@ -87,4 +89,5 @@ func (e ExchangeRateHandler) PostSendEmails(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 }

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
@@ -33,4 +34,8 @@ func NewServer(handler *ExchangeRateHandler, addr string) *Server {
 func (s *Server) Start() error {
 	log.Printf("Running on http://%s\n", s.server.Addr)
 	return s.server.ListenAndServe()
+}
+
+func (s *Server) Shutdown() error {
+	return s.server.Shutdown(context.TODO())
 }
