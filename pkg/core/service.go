@@ -34,22 +34,25 @@ type Service struct {
 	sender        Sender
 }
 
-func NewService(smtpPort, smtpHost, from, password, filename string) (*Service, error) {
-	var db Storage[string]
-	var err error
-	db, err = NewFileDB(filename)
+func NewService(receivers Storage[string], rateRequester ValueRequester[float64], sender Sender) *Service {
+	service := &Service{
+		receivers:     receivers,
+		rateRequester: rateRequester,
+		sender:        sender,
+	}
+	return service
+}
+
+func NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename string) (*Service, error) {
+	db, err := NewFileDB(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	var requester ValueRequester[float64] = NewCoingeckoRate("bitcoin", "uah")
-	var sender Sender = NewEmailSender(from, password, smtpHost, smtpPort)
+	requester := NewCoingeckoRate("bitcoin", "uah")
+	sender := NewEmailSender(from, password, smtpHost, smtpPort)
 
-	service := &Service{
-		receivers:     db,
-		rateRequester: requester,
-		sender:        sender,
-	}
+	service := NewService(db, requester, sender)
 	return service, nil
 }
 
