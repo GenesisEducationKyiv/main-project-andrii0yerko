@@ -1,4 +1,4 @@
-package http_test
+package functional_test
 
 import (
 	"bitcoinrateapp/pkg/core"
@@ -29,10 +29,10 @@ func TestHTTPServer(t *testing.T) {
 	addr := "localhost:3333"
 	startServer(handler, addr, t)
 
-	testGetRate(addr, t)
-	testSubscribe(addr, t)
-	testDuplicateSubscribe(addr, t)
-	testSendEmails(addr, t)
+	t.Run("get rate", func(t *testing.T) { testGetRate(addr, t) })
+	t.Run("subscribe", func(t *testing.T) { testSubscribe(addr, t) })
+	t.Run("duplicate subscribe", func(t *testing.T) { testDuplicateSubscribe(addr, t) })
+	t.Run("send emails", func(t *testing.T) { testSendEmails(addr, t) })
 }
 
 func startServer(handler *app.ExchangeRateHandler, addr string, t *testing.T) {
