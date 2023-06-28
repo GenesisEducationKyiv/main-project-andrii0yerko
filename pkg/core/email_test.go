@@ -10,21 +10,6 @@ import (
 	"testing"
 )
 
-func readTotalMessages(url string) (int, error) {
-	response, err := http.Get(url)
-	if err != nil {
-		return 0, err
-	}
-
-	var messages MessagesRepresentation
-	err = json.NewDecoder(response.Body).Decode(&messages)
-	if err != nil {
-		return 0, err
-	}
-
-	return messages.Total, nil
-}
-
 type MessagesRepresentation struct {
 	Total int `json:"total"`
 }
@@ -54,4 +39,19 @@ func TestEmailSendIntegration(t *testing.T) {
 	if count != 1 {
 		t.Errorf("Expected 1 message, got %d", count)
 	}
+}
+
+func readTotalMessages(url string) (int, error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return 0, err
+	}
+
+	var messages MessagesRepresentation
+	err = json.NewDecoder(response.Body).Decode(&messages)
+	if err != nil {
+		return 0, err
+	}
+
+	return messages.Total, nil
 }

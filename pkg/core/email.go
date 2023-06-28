@@ -23,17 +23,6 @@ func NewEmailSender(from, password, smtpHost, smtpPort string) EmailSender {
 	}
 }
 
-func (sender EmailSender) authentication() smtp.Auth {
-	// Authentication
-	var auth smtp.Auth
-	if sender.password == "" {
-		auth = nil
-	} else {
-		auth = smtp.PlainAuth("", sender.from, sender.password, sender.smtpHost)
-	}
-	return auth
-}
-
 func (sender EmailSender) Send(receiver string, subject, message string) error {
 	// Receiver email address.
 	to := []string{
@@ -52,4 +41,15 @@ func (sender EmailSender) Send(receiver string, subject, message string) error {
 	}
 	log.Println("Email Sent Successfully!")
 	return nil
+}
+
+func (sender EmailSender) authentication() smtp.Auth {
+	// Authentication
+	var auth smtp.Auth
+	if sender.password == "" {
+		auth = nil
+	} else {
+		auth = smtp.PlainAuth("", sender.from, sender.password, sender.smtpHost)
+	}
+	return auth
 }
