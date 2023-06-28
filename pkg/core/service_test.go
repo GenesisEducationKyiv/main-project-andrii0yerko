@@ -8,44 +8,6 @@ import (
 	"testing"
 )
 
-type MockDB struct {
-	records []string
-}
-
-func (m *MockDB) Records() ([]string, error) {
-	return m.records, nil
-}
-
-func (m *MockDB) Append(value string) error {
-	m.records = append(m.records, value)
-	return nil
-}
-
-type MockFilledDB struct {
-	expectedError error
-}
-
-func (m *MockFilledDB) Records() ([]string, error) {
-	return nil, nil
-}
-
-func (m *MockFilledDB) Append(_ string) error {
-	return m.expectedError
-}
-
-type MockSender struct {
-	receivedValues []string
-	lastSubject    string
-	lastMessage    string
-}
-
-func (m *MockSender) Send(receiver string, subject, message string) error {
-	m.receivedValues = append(m.receivedValues, receiver)
-	m.lastSubject = subject
-	m.lastMessage = message
-	return nil
-}
-
 func TestServiceRate(t *testing.T) {
 	rate := 100.0
 	service := core.NewService(nil, &testenv.MockRate{ExpectedRate: rate}, nil)
@@ -60,7 +22,7 @@ func TestServiceRate(t *testing.T) {
 
 func TestServiceSubscribeSuccessfully(t *testing.T) {
 	receiver := "abc@abc.test"
-	db := &MockDB{}
+	db := &testenv.MockDB{}
 	service := core.NewService(db, nil, nil)
 
 	err := service.Subscribe(receiver)
@@ -68,18 +30,18 @@ func TestServiceSubscribeSuccessfully(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(db.records) != 1 {
-		t.Errorf("unexpected records count: %d", len(db.records))
+	if len(db.Memory) != 1 {
+		t.Errorf("unexpected records count: %d", len(db.Memory))
 	}
-	if db.records[0] != receiver {
-		t.Errorf("unexpected record: %s", db.records[0])
+	if db.Memory[0] != receiver {
+		t.Errorf("unexpected record: %s", db.Memory[0])
 	}
 }
 
 func TestServiceSubscribeError(t *testing.T) {
 	receiver := "abc@abc.test"
 	expError := core.ErrIsDuplicate
-	db := &MockFilledDB{expectedError: expError}
+	db := &testenv.MockErrorDB{ExpectedError: expError}
 	service := core.NewService(db, nil, nil)
 
 	err := service.Subscribe(receiver)
@@ -93,9 +55,9 @@ func TestServiceNotify(t *testing.T) {
 	// receiver := "abc@abc.test"
 	receivers := []string{"abc@abc.test", "abc2@abc.test"}
 	rate := 100.0
-	db := &MockDB{records: receivers}
+	db := &testenv.MockDB{Memory: receivers}
 	rateProvider := &testenv.MockRate{ExpectedRate: rate}
-	sender := &MockSender{}
+	sender := &testenv.MockSender{}
 	service := core.NewService(db, rateProvider, sender)
 
 	err := service.Notify()
@@ -103,20 +65,20 @@ func TestServiceNotify(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(sender.receivedValues) != len(receivers) {
-		t.Errorf("unexpected receivers count: %d", len(sender.receivedValues))
+	if len(sender.ReceivedValues) != len(receivers) {
+		t.Errorf("unexpected receivers count: %d", len(sender.ReceivedValues))
 	}
 
-	if sender.receivedValues[0] != receivers[0] {
-		t.Errorf("unexpected receiver: %s", sender.receivedValues[0])
+	if sender.ReceivedValues[0] != receivers[0] {
+		t.Errorf("unexpected receiver: %s", sender.ReceivedValues[0])
 	}
-	if sender.receivedValues[1] != receivers[1] {
-		t.Errorf("unexpected receiver: %s", sender.receivedValues[1])
+	if sender.ReceivedValues[1] != receivers[1] {
+		t.Errorf("unexpected receiver: %s", sender.ReceivedValues[1])
 	}
-	if sender.lastSubject != rateProvider.Description() {
-		t.Errorf("unexpected subject: %s", sender.lastSubject)
+	if sender.LastSubject != rateProvider.Description() {
+		t.Errorf("unexpected subject: %s", sender.LastSubject)
 	}
-	if sender.lastMessage != fmt.Sprintf("%f", rate) {
-		t.Errorf("unexpected message: %s", sender.lastMessage)
+	if sender.LastMessage != fmt.Sprintf("%f", rate) {
+		t.Errorf("unexpected message: %s", sender.LastMessage)
 	}
 }
