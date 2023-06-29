@@ -6,7 +6,10 @@ import (
 	"bitcoinrateapp/pkg/testenv"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 )
@@ -20,7 +23,7 @@ func TestHTTPServer(t *testing.T) {
 		t.Fatalf("Could not setup mailserver: %s", err)
 	}
 
-	receivers := testenv.NewTemporaryFileDB(t)
+	receivers, file := testenv.NewTemporaryFileDB(t)
 	sender := core.NewEmailSender("test@email.com", "", "localhost", smtpPort)
 	rateRequester := &testenv.MockRate{ExpectedRate: 1000}
 
@@ -30,8 +33,12 @@ func TestHTTPServer(t *testing.T) {
 	startServer(handler, addr, t)
 
 	t.Run("get rate", func(t *testing.T) { testGetRate(addr, t) })
-	t.Run("subscribe", func(t *testing.T) { testSubscribe(addr, t) })
-	t.Run("duplicate subscribe", func(t *testing.T) { testDuplicateSubscribe(addr, t) })
+	t.Run("subscribe", func(t *testing.T) {
+		runWithTransaction(file, func() { testSubscribe(addr, t) })
+	})
+	t.Run("duplicate subscribe", func(t *testing.T) {
+		runWithTransaction(file, func() { testDuplicateSubscribe(addr, receivers, t) })
+	})
 	t.Run("send emails", func(t *testing.T) { testSendEmails(addr, t) })
 }
 
@@ -78,9 +85,14 @@ func testSubscribe(addr string, t *testing.T) {
 	}
 }
 
-func testDuplicateSubscribe(addr string, t *testing.T) {
+func testDuplicateSubscribe(addr string, db core.Storage[string], t *testing.T) {
+	email := "test@test"
+	err := db.Append(email)
+	if err != nil {
+		t.Errorf("Setup DB data: %s", err)
+	}
 	resp, err := http.PostForm(
-		fmt.Sprintf("http://%s/subscribe", addr), map[string][]string{"email": {"test@test"}},
+		fmt.Sprintf("http://%s/subscribe", addr), map[string][]string{"email": {email}},
 	)
 	if err != nil {
 		t.Errorf("Request error: %s", err)
@@ -99,5 +111,27 @@ func testSendEmails(addr string, t *testing.T) {
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+}
+
+func runWithTransaction(file *os.File, fn func()) {
+	currentState, err := io.ReadAll(file)
+	if err != nil {
+		log.Fatal("Failed to read file state:", err)
+	}
+
+	fn()
+
+	err = file.Truncate(0)
+	if err != nil {
+		log.Fatal("Failed to truncate file:", err)
+	}
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		log.Fatal("Failed to seek file:", err)
+	}
+	_, err = file.Write(currentState)
+	if err != nil {
+		log.Fatal("Failed to write file state:", err)
 	}
 }

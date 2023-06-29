@@ -10,7 +10,7 @@ import (
 func TestAddNewToFileDB(t *testing.T) {
 	value := "test@email.org"
 
-	db := testenv.NewTemporaryFileDB(t)
+	db, _ := testenv.NewTemporaryFileDB(t)
 	err := db.Append(value)
 	if err != nil {
 		t.Error(err)
@@ -29,7 +29,7 @@ func TestAddNewToFileDB(t *testing.T) {
 func TestAddDuplicateToFileDB(t *testing.T) {
 	value := "test@email.org"
 
-	db := testenv.NewTemporaryFileDB(t)
+	db, _ := testenv.NewTemporaryFileDB(t)
 	err := db.Append(value)
 	if err != nil {
 		t.Error(err)

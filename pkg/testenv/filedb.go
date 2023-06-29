@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func NewTemporaryFileDB(t *testing.T) *core.FileDB {
+func NewTemporaryFileDB(t *testing.T) (*core.FileDB, *os.File) {
 	file, err := os.CreateTemp(os.TempDir(), "prefix")
 	if err != nil {
 		t.Fatal(err)
@@ -17,5 +17,5 @@ func NewTemporaryFileDB(t *testing.T) *core.FileDB {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return db
+	return db, file
 }
