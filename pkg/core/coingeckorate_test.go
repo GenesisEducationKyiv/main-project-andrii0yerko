@@ -29,7 +29,7 @@ func TestValueRequest(t *testing.T) {
 
 	client := &MockHTTPClient{expectedRate: expectedRate}
 	coingecko := core.NewCoingeckoRateWithHTTPClient("bitcoin", "uah", client)
-	actualRate, err := coingecko.Value(context.TODO())
+	actualRate, err := coingecko.Value(context.TODO(), "bitcoin", "uah")
 	if err != nil {
 		t.Error(err)
 	}

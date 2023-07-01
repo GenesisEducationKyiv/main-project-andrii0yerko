@@ -16,11 +16,9 @@ type Storage[T any] interface {
 
 // Abstract requester which allows to extract a specific value, and its description
 type ValueRequester[T any] interface {
-	Value(context.Context) (T, error)
-	Description() string
+	Value(ctx context.Context, coin, currency string) (T, error)
 }
 
-// Defines behavior of sending data for the users
 type Sender interface {
 	Send(receiver string, subject string, message string) error
 }
@@ -29,9 +27,10 @@ type Sender interface {
 // responsible for providing access to the aggregated core objects
 // and for setting up their interaction as well
 type Service struct {
-	receivers     Storage[string]
-	rateRequester ValueRequester[float64]
-	sender        Sender
+	receivers      Storage[string]
+	rateRequester  ValueRequester[float64]
+	sender         Sender
+	coin, currency string
 }
 
 func NewService(receivers Storage[string], rateRequester ValueRequester[float64], sender Sender) *Service {
@@ -39,6 +38,8 @@ func NewService(receivers Storage[string], rateRequester ValueRequester[float64]
 		receivers:     receivers,
 		rateRequester: rateRequester,
 		sender:        sender,
+		coin:          "bitcoin",
+		currency:      "uah",
 	}
 	return service
 }
@@ -57,7 +58,7 @@ func NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename string)
 }
 
 func (s Service) ExchangeRate() (float64, error) {
-	return s.rateRequester.Value(context.TODO())
+	return s.rateRequester.Value(context.TODO(), s.coin, s.currency)
 }
 
 func (s Service) Subscribe(receiver string) error {
@@ -71,7 +72,7 @@ func (s Service) Notify() error {
 		log.Println(err)
 		return err
 	}
-	subject := s.rateRequester.Description()
+	subject := getDescription(s.coin, s.currency)
 	message := fmt.Sprintf("%f", value)
 
 	receivers, err := s.receivers.Records()
@@ -93,4 +94,9 @@ func (s Service) Notify() error {
 		return err
 	}
 	return nil
+}
+
+func getDescription(coin, currency string) string {
+	cointTitle := strings.ToUpper(coin[:1]) + strings.ToLower(coin[1:])
+	return fmt.Sprintf("%s to %s Exchange Rate", cointTitle, strings.ToUpper(currency))
 }

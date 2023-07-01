@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 )
 
 type coingeckoResponse map[string]map[string]float64
@@ -15,48 +14,33 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// Client for the coingecko api
-// Allows to query current exchange rate of `Coin` to `Currency`
 type CoingeckoRate struct {
 	coin, currency string
 	client         HTTPClient
-	description    string
-}
-
-func getDescription(coin, currency string) string {
-	cointTitle := strings.ToUpper(coin[:1]) + strings.ToLower(coin[1:])
-	return fmt.Sprintf("%s to %s Exchange Rate", cointTitle, strings.ToUpper(currency))
 }
 
 func NewCoingeckoRate(coin, currency string) *CoingeckoRate {
-	description := getDescription(coin, currency)
 	return &CoingeckoRate{
-		coin:        coin,
-		currency:    currency,
-		description: description,
-		client:      &http.Client{},
+		coin:     coin,
+		currency: currency,
+		client:   &http.Client{},
 	}
 }
 
 func NewCoingeckoRateWithHTTPClient(coin, currency string, client HTTPClient) *CoingeckoRate {
 	return &CoingeckoRate{
-		coin:        coin,
-		currency:    currency,
-		description: getDescription(coin, currency),
-		client:      client,
+		coin:     coin,
+		currency: currency,
+		client:   client,
 	}
 }
 
-func (requester CoingeckoRate) Description() string {
-	return requester.description
-}
-
-func (requester CoingeckoRate) Value(ctx context.Context) (float64, error) {
+func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string) (float64, error) {
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
 		"https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=%s",
-		requester.coin,
-		requester.currency,
+		coin,
+		currency,
 	)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)

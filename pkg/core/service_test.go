@@ -75,9 +75,6 @@ func TestServiceNotify(t *testing.T) {
 	if sender.ReceivedValues[1] != receivers[1] {
 		t.Errorf("unexpected receiver: %s", sender.ReceivedValues[1])
 	}
-	if sender.LastSubject != rateProvider.Description() {
-		t.Errorf("unexpected subject: %s", sender.LastSubject)
-	}
 	if sender.LastMessage != fmt.Sprintf("%f", rate) {
 		t.Errorf("unexpected message: %s", sender.LastMessage)
 	}
