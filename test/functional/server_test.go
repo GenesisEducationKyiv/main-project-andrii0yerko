@@ -70,6 +70,19 @@ func testGetRate(addr string, t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status %d, got %d", http.StatusOK, resp.StatusCode)
 	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Read body error: %s", err)
+	}
+	if len(body) == 0 {
+		t.Errorf("Empty body")
+	}
+	for _, b := range body {
+		if b != '.' && (b < '0' || b > '9') {
+			t.Errorf("Body contains non-digit: %c", b)
+		}
+	}
 }
 
 func testSubscribe(addr string, t *testing.T) {
