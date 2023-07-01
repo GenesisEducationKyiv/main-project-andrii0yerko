@@ -4,7 +4,6 @@ import (
 	"bitcoinrateapp/pkg/core"
 	"bitcoinrateapp/pkg/testenv"
 	"errors"
-	"fmt"
 	"testing"
 )
 
@@ -52,7 +51,6 @@ func TestServiceSubscribeError(t *testing.T) {
 }
 
 func TestServiceNotify(t *testing.T) {
-	// receiver := "abc@abc.test"
 	receivers := []string{"abc@abc.test", "abc2@abc.test"}
 	rate := 100.0
 	db := &testenv.MockDB{Memory: receivers}
@@ -75,7 +73,7 @@ func TestServiceNotify(t *testing.T) {
 	if sender.ReceivedValues[1] != receivers[1] {
 		t.Errorf("unexpected receiver: %s", sender.ReceivedValues[1])
 	}
-	if sender.LastMessage != fmt.Sprintf("%f", rate) {
-		t.Errorf("unexpected message: %s", sender.LastMessage)
+	if sender.LastRate.Value() != rate {
+		t.Errorf("unexpected message: %s", sender.LastRate)
 	}
 }

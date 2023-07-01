@@ -11,5 +11,5 @@ type MockRate struct {
 }
 
 func (m *MockRate) Value(_ context.Context, _, _ string) (core.Rate, error) {
-	return model.NewExchangeRate(m.ExpectedRate, "coint", "currency"), nil
+	return model.NewExchangeRate(m.ExpectedRate, "coin", "currency"), nil
 }

@@ -24,7 +24,14 @@ func TestHTTPServer(t *testing.T) {
 	}
 
 	receivers, file := testenv.NewTemporaryFileDB(t)
-	sender := core.NewEmailSender("test@email.com", "", "localhost", smtpPort)
+
+	from := "test@email.com"
+	password := ""
+	host := "localhost"
+
+	client := core.NewSMTPClient(from, password, host, smtpPort)
+	formatter := core.NewPlainEmailFormatter(from)
+	sender := core.NewEmailSender(client, formatter)
 	rateRequester := &testenv.MockRate{ExpectedRate: 1000}
 
 	service := core.NewService(receivers, rateRequester, sender)

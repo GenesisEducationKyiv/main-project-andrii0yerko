@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"strings"
 )
@@ -27,7 +26,7 @@ type RateRequester interface {
 }
 
 type Sender interface {
-	Send(receiver string, subject string, message string) error
+	SendRate(receiver string, rate Rate) error
 }
 
 type Service struct {
@@ -55,7 +54,10 @@ func NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename string)
 	}
 
 	requester := NewCoingeckoRate("bitcoin", "uah")
-	sender := NewEmailSender(from, password, smtpHost, smtpPort)
+
+	client := NewSMTPClient(from, password, smtpHost, smtpPort)
+	formatter := NewPlainEmailFormatter(from)
+	sender := NewEmailSender(client, formatter)
 
 	service := NewService(db, requester, sender)
 	return service, nil
@@ -78,13 +80,11 @@ func (s Service) Subscribe(receiver string) error {
 }
 
 func (s Service) Notify() error {
-	value, err := s.rateRequester.Value(context.TODO(), s.coin, s.currency)
+	rate, err := s.rateRequester.Value(context.TODO(), s.coin, s.currency)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	subject := getDescription(s.coin, s.currency)
-	message := fmt.Sprintf("%f", value.Value())
 
 	receivers, err := s.receivers.Records()
 	if err != nil {
@@ -94,7 +94,7 @@ func (s Service) Notify() error {
 
 	sendErrs := make([]error, 0, len(receivers))
 	for _, receiver := range receivers {
-		sendErr := s.sender.Send(receiver, subject, message)
+		sendErr := s.sender.SendRate(receiver, rate)
 		if sendErr != nil {
 			log.Println(sendErr)
 			sendErrs = append(sendErrs, sendErr)
@@ -105,9 +105,4 @@ func (s Service) Notify() error {
 		return err
 	}
 	return nil
-}
-
-func getDescription(coin, currency string) string {
-	cointTitle := strings.ToUpper(coin[:1]) + strings.ToLower(coin[1:])
-	return fmt.Sprintf("%s to %s Exchange Rate", cointTitle, strings.ToUpper(currency))
 }

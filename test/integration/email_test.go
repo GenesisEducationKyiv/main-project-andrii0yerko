@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/model"
 	"bitcoinrateapp/pkg/testenv"
 	"encoding/json"
 	"fmt"
@@ -23,10 +24,17 @@ func TestEmailSendIntegration(t *testing.T) {
 		t.Fatalf("Could not setup mailserver: %s", err)
 	}
 
+	from := "sender@test.org"
+	password := ""
 	host := "localhost"
-	sender := core.NewEmailSender("sender@test.org", "", host, smtpPort)
 
-	err = sender.Send("receiver@test.org", "Test", "Test")
+	client := core.NewSMTPClient(from, password, host, smtpPort)
+	formatter := core.NewPlainEmailFormatter(from)
+	sender := core.NewEmailSender(client, formatter)
+
+	rate := model.NewExchangeRate(1000, "coin", "currency")
+
+	err = sender.SendRate("receiver@test.org", rate)
 	if err != nil {
 		t.Fatalf("Could not send email: %s", err)
 	}

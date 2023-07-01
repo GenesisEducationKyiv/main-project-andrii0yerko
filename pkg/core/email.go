@@ -1,51 +1,36 @@
 package core
 
 import (
-	"fmt"
 	"log"
-	"net/smtp"
 )
 
-// Simple Sender implementation around smtp package
+type Formatter interface {
+	Format(user string, rate Rate) string
+}
+
+type Client interface {
+	Send(receiver, message string) error
+}
+
 type EmailSender struct {
-	from     string
-	password string
-	smtpHost string
-	smtpPort string
+	client    Client
+	formatter Formatter
 }
 
-func NewEmailSender(from, password, smtpHost, smtpPort string) EmailSender {
+func NewEmailSender(client Client, formatter Formatter) EmailSender {
 	return EmailSender{
-		from:     from,
-		password: password,
-		smtpHost: smtpHost,
-		smtpPort: smtpPort,
+		client:    client,
+		formatter: formatter,
 	}
 }
 
-func (sender EmailSender) Send(receiver string, subject, message string) error {
-	to := []string{
-		receiver,
-	}
-
-	rfc822 := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\n%s", sender.from, receiver, subject, message)
-	messageBytes := []byte(rfc822)
-
-	err := smtp.SendMail(sender.smtpHost+":"+sender.smtpPort, sender.authentication(), sender.from, to, messageBytes)
+func (s EmailSender) SendRate(receiver string, rate Rate) error {
+	rfc822 := s.formatter.Format(receiver, rate)
+	err := s.client.Send(receiver, rfc822)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 	log.Println("Email Sent Successfully!")
 	return nil
-}
-
-func (sender EmailSender) authentication() smtp.Auth {
-	var auth smtp.Auth
-	if sender.password == "" {
-		auth = nil
-	} else {
-		auth = smtp.PlainAuth("", sender.from, sender.password, sender.smtpHost)
-	}
-	return auth
 }
