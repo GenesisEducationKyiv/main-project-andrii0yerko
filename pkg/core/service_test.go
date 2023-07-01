@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/model"
 	"bitcoinrateapp/pkg/testenv"
 	"errors"
 	"testing"
@@ -21,11 +22,14 @@ func TestServiceRate(t *testing.T) {
 
 func TestServiceSubscribeSuccessfully(t *testing.T) {
 	receiver := "abc@abc.test"
+	subscriber, err := model.NewSubscriber(receiver)
+	if err != nil {
+		t.Fatal(err)
+	}
 	db := &testenv.MockDB{}
 	service := core.NewService(db, nil, nil)
 
-	err := service.Subscribe(receiver)
-
+	err = service.Subscribe(subscriber)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,12 +43,15 @@ func TestServiceSubscribeSuccessfully(t *testing.T) {
 
 func TestServiceSubscribeError(t *testing.T) {
 	receiver := "abc@abc.test"
+	subscriber, err := model.NewSubscriber(receiver)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expError := core.ErrIsDuplicate
 	db := &testenv.MockErrorDB{ExpectedError: expError}
 	service := core.NewService(db, nil, nil)
 
-	err := service.Subscribe(receiver)
-
+	err = service.Subscribe(subscriber)
 	if !errors.Is(err, expError) {
 		t.Fatal(err)
 	}

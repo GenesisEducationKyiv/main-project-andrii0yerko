@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"strings"
 )
 
 var ErrIsDuplicate = errors.New("is duplicate")
@@ -19,6 +18,10 @@ type Rate interface {
 	Value() float64
 	Coin() string
 	Currency() string
+}
+
+type Subscriber interface {
+	Email() string
 }
 
 type RateRequester interface {
@@ -71,8 +74,8 @@ func (s Service) ExchangeRate() (float64, error) {
 	return rate.Value(), nil
 }
 
-func (s Service) Subscribe(receiver string) error {
-	receiver = strings.ToLower(strings.TrimSpace(receiver))
+func (s Service) Subscribe(subscriber Subscriber) error {
+	receiver := subscriber.Email()
 	if s.receivers.Contains(receiver) {
 		return ErrIsDuplicate
 	}

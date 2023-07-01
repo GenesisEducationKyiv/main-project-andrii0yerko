@@ -2,6 +2,7 @@ package http
 
 import (
 	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/model"
 	"encoding/json"
 	"errors"
 	"log"
@@ -59,11 +60,13 @@ func (e ExchangeRateHandler) PostSubscribe(w http.ResponseWriter, r *http.Reques
 	}
 	log.Printf("got PostSubscribe request\n")
 	email := r.PostFormValue("email")
-	if email == "" {
+
+	subscriber, err := model.NewSubscriber(email)
+	if errors.Is(err, model.ErrEmptyEmail) {
 		return
 	}
 
-	err := e.Service.Subscribe(email)
+	err = e.Service.Subscribe(subscriber)
 	switch {
 	case err == nil:
 		w.WriteHeader(http.StatusOK)
