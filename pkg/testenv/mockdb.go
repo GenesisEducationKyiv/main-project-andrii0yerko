@@ -12,3 +12,7 @@ func (m *MockDB) Append(value string) error {
 	m.Memory = append(m.Memory, value)
 	return nil
 }
+
+func (m *MockDB) Contains(_ string) bool {
+	return false
+}

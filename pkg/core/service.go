@@ -8,10 +8,12 @@ import (
 	"strings"
 )
 
-// An abstract storage which allows to read and add values
+var ErrIsDuplicate = errors.New("is duplicate")
+
 type Storage[T any] interface {
 	Append(T) error
 	Records() ([]T, error)
+	Contains(T) bool
 }
 
 // Abstract requester which allows to extract a specific value, and its description
@@ -63,6 +65,9 @@ func (s Service) ExchangeRate() (float64, error) {
 
 func (s Service) Subscribe(receiver string) error {
 	receiver = strings.ToLower(strings.TrimSpace(receiver))
+	if s.receivers.Contains(receiver) {
+		return ErrIsDuplicate
+	}
 	return s.receivers.Append(receiver)
 }
 

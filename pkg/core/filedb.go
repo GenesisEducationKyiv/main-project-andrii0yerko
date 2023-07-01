@@ -2,16 +2,10 @@ package core
 
 import (
 	"bufio"
-	"errors"
 	"log"
 	"os"
 )
 
-var ErrIsDuplicate = errors.New("is duplicate")
-
-// Simple file storage
-// each record is stored in a new line
-// stores unique values only
 type FileDB struct {
 	file *os.File
 }
@@ -43,13 +37,7 @@ func (db *FileDB) Records() ([]string, error) {
 	return records, nil
 }
 
-// add new value to the file
-// if the same line already exists returns ErrIsDuplicate
 func (db *FileDB) Append(value string) error {
-	if db.checkExists(value) {
-		return ErrIsDuplicate
-	}
-
 	datawriter := bufio.NewWriter(db.file)
 	_, err := datawriter.WriteString(value + "\n")
 	if err != nil {
@@ -64,7 +52,7 @@ func (db *FileDB) Append(value string) error {
 	return nil
 }
 
-func (db *FileDB) checkExists(value string) bool {
+func (db *FileDB) Contains(value string) bool {
 	records, err := db.Records()
 	if err != nil {
 		log.Println("Error:", err)
