@@ -16,8 +16,14 @@ type Storage[T any] interface {
 	Contains(T) bool
 }
 
-type ValueRequester[T any] interface {
-	Value(ctx context.Context, coin, currency string) (T, error)
+type Rate interface {
+	Value() float64
+	Coin() string
+	Currency() string
+}
+
+type RateRequester interface {
+	Value(ctx context.Context, coin, currency string) (Rate, error)
 }
 
 type Sender interface {
@@ -26,12 +32,12 @@ type Sender interface {
 
 type Service struct {
 	receivers      Storage[string]
-	rateRequester  ValueRequester[float64]
+	rateRequester  RateRequester
 	sender         Sender
 	coin, currency string
 }
 
-func NewService(receivers Storage[string], rateRequester ValueRequester[float64], sender Sender) *Service {
+func NewService(receivers Storage[string], rateRequester RateRequester, sender Sender) *Service {
 	service := &Service{
 		receivers:     receivers,
 		rateRequester: rateRequester,
@@ -56,7 +62,11 @@ func NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename string)
 }
 
 func (s Service) ExchangeRate() (float64, error) {
-	return s.rateRequester.Value(context.TODO(), s.coin, s.currency)
+	rate, err := s.rateRequester.Value(context.TODO(), s.coin, s.currency)
+	if err != nil {
+		return 0, err
+	}
+	return rate.Value(), nil
 }
 
 func (s Service) Subscribe(receiver string) error {
@@ -68,13 +78,13 @@ func (s Service) Subscribe(receiver string) error {
 }
 
 func (s Service) Notify() error {
-	value, err := s.ExchangeRate()
+	value, err := s.rateRequester.Value(context.TODO(), s.coin, s.currency)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 	subject := getDescription(s.coin, s.currency)
-	message := fmt.Sprintf("%f", value)
+	message := fmt.Sprintf("%f", value.Value())
 
 	receivers, err := s.receivers.Records()
 	if err != nil {

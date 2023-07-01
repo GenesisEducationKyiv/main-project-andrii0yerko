@@ -34,7 +34,7 @@ func TestValueRequest(t *testing.T) {
 		t.Error(err)
 	}
 
-	if math.Abs(actualRate-expectedRate) > 0.0001 {
+	if math.Abs(actualRate.Value()-expectedRate) > 0.0001 {
 		t.Errorf("expected %f, got %f", expectedRate, actualRate)
 	}
 }

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bitcoinrateapp/pkg/model"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -35,7 +36,7 @@ func NewCoingeckoRateWithHTTPClient(coin, currency string, client HTTPClient) *C
 	}
 }
 
-func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string) (float64, error) {
+func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, error) {
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
 		"https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=%s",
@@ -57,11 +58,14 @@ func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string)
 	defer resp.Body.Close()
 	var rateJSON coingeckoResponse
 	err = json.NewDecoder(resp.Body).Decode(&rateJSON)
-	rate := rateJSON[requester.coin][requester.currency]
+	value := rateJSON[requester.coin][requester.currency]
 	if err != nil {
 		log.Println("CoingeckoRate.Value json error", err)
 	}
 
-	log.Println("get rate:", rate)
+	log.Println("get rate:", value)
+
+	rate := model.NewExchangeRate(value, coin, currency)
+
 	return rate, err
 }
