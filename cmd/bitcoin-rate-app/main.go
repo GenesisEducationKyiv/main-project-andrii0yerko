@@ -13,11 +13,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Load app configuration from both config file and command line args
-// Custom config path can be passed with `--config path/to/my/config.yaml`
-// By default - searching for file `./config.yaml`
 func parseConfiguration() {
-	// Set up the command line flags
 	pflag.String("config", "config.yaml", "Config file name. Supported types are yaml, json, toml, ini, env")
 
 	pflag.String("sender.smtpPort", "", "SMTP port")
@@ -30,7 +26,6 @@ func parseConfiguration() {
 
 	pflag.Parse()
 
-	// Bind command line flags to Viper
 	err := viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
 		log.Fatalf("Error binding flags: %s", err)
@@ -40,7 +35,6 @@ func parseConfiguration() {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// Set up the config file name and path
 	viper.SetConfigFile(viper.GetString("config"))
 	viper.AddConfigPath(".")
 	if err = viper.ReadInConfig(); err != nil {
@@ -52,7 +46,6 @@ func parseConfiguration() {
 		}
 	}
 
-	// Ensure that all required values are given
 	for _, field := range []string{
 		"sender.smtpHost", "sender.smtpPort", "sender.from", "storage.filename", "server.host", "server.port",
 	} {

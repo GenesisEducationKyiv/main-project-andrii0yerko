@@ -24,16 +24,13 @@ func NewEmailSender(from, password, smtpHost, smtpPort string) EmailSender {
 }
 
 func (sender EmailSender) Send(receiver string, subject, message string) error {
-	// Receiver email address.
 	to := []string{
 		receiver,
 	}
 
-	// Message
 	rfc822 := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\n%s", sender.from, receiver, subject, message)
 	messageBytes := []byte(rfc822)
 
-	// Sending email
 	err := smtp.SendMail(sender.smtpHost+":"+sender.smtpPort, sender.authentication(), sender.from, to, messageBytes)
 	if err != nil {
 		log.Println(err)
@@ -44,7 +41,6 @@ func (sender EmailSender) Send(receiver string, subject, message string) error {
 }
 
 func (sender EmailSender) authentication() smtp.Auth {
-	// Authentication
 	var auth smtp.Auth
 	if sender.password == "" {
 		auth = nil

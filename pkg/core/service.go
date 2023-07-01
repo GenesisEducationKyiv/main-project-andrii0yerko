@@ -16,7 +16,6 @@ type Storage[T any] interface {
 	Contains(T) bool
 }
 
-// Abstract requester which allows to extract a specific value, and its description
 type ValueRequester[T any] interface {
 	Value(ctx context.Context, coin, currency string) (T, error)
 }
@@ -25,9 +24,6 @@ type Sender interface {
 	Send(receiver string, subject string, message string) error
 }
 
-// handles main logic of the App.
-// responsible for providing access to the aggregated core objects
-// and for setting up their interaction as well
 type Service struct {
 	receivers      Storage[string]
 	rateRequester  ValueRequester[float64]
