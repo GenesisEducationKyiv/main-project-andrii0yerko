@@ -16,23 +16,18 @@ type HTTPClient interface {
 }
 
 type CoingeckoRate struct {
-	coin, currency string
-	client         HTTPClient
+	client HTTPClient
 }
 
-func NewCoingeckoRate(coin, currency string) *CoingeckoRate {
+func NewCoingeckoRate() *CoingeckoRate {
 	return &CoingeckoRate{
-		coin:     coin,
-		currency: currency,
-		client:   &http.Client{},
+		client: &http.Client{},
 	}
 }
 
-func NewCoingeckoRateWithHTTPClient(coin, currency string, client HTTPClient) *CoingeckoRate {
+func NewCoingeckoRateWithHTTPClient(client HTTPClient) *CoingeckoRate {
 	return &CoingeckoRate{
-		coin:     coin,
-		currency: currency,
-		client:   client,
+		client: client,
 	}
 }
 
@@ -58,7 +53,7 @@ func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string)
 	defer resp.Body.Close()
 	var rateJSON coingeckoResponse
 	err = json.NewDecoder(resp.Body).Decode(&rateJSON)
-	value := rateJSON[requester.coin][requester.currency]
+	value := rateJSON[coin][currency]
 	if err != nil {
 		log.Println("CoingeckoRate.Value json error", err)
 	}

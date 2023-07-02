@@ -51,7 +51,7 @@ func NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename string)
 		return nil, err
 	}
 
-	requester := rateclient.NewCoingeckoRate("bitcoin", "uah")
+	requester := rateclient.NewCoingeckoRate()
 
 	client := NewSMTPClient(from, password, smtpHost, smtpPort)
 	formatter := NewPlainEmailFormatter(from)
