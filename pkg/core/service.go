@@ -45,20 +45,24 @@ func NewService(receivers Storage[string], rateRequester RateRequester, sender S
 	return service
 }
 
-func NewServiceWithDefaults(coingeckoURL, _, smtpPort, smtpHost, from, password, filename string) (*Service, error) {
+func NewServiceWithDefaults(coingeckoURL, binanceURL, smtpPort, smtpHost, from, password, filename string) (*Service, error) {
 	db, err := NewFileDB(filename)
 	if err != nil {
 		return nil, err
 	}
 
 	requester := rateclient.NewCoingeckoRate(coingeckoURL)
+	requesterChain := rateclient.NewRequesterChain(requester)
+	requester2 := rateclient.NewBinanceRate(binanceURL)
+	requesterChain2 := rateclient.NewRequesterChain(requester2)
+	requesterChain.SetNext(requesterChain2)
 
 	auth := NewAuthentication(from, password, smtpHost)
 	client := NewSMTPClient(from, auth, smtpHost, smtpPort)
 	formatter := NewPlainEmailFormatter(from)
 	sender := NewEmailSender(client, formatter)
 
-	service := NewService(db, requester, sender)
+	service := NewService(db, requesterChain, sender)
 	return service, nil
 }
 

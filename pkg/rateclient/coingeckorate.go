@@ -34,11 +34,11 @@ func NewCoingeckoRateWithHTTPClient(coingeckoURL string, client HTTPClient) *Coi
 	}
 }
 
-func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, error) {
+func (c CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, error) {
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
 		"%s/simple/price?ids=%s&vs_currencies=%s",
-		requester.baseURL,
+		c.baseURL,
 		coin,
 		currency,
 	)
@@ -49,7 +49,7 @@ func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string)
 	}
 	req.Header.Set("accept", "application/json")
 
-	resp, err := requester.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		log.Println("CoingeckoRate.Value api error", err)
 	}
