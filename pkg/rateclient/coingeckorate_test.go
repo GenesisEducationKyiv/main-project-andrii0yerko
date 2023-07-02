@@ -12,22 +12,22 @@ import (
 )
 
 type MockHTTPClient struct {
-	expectedRate float64
+	expectedJSON string
 }
 
 func (m *MockHTTPClient) Do(_ *http.Request) (*http.Response, error) {
-	expectedJSON := fmt.Sprintf(`{"bitcoin":{"uah":%f}}`, m.expectedRate)
 	httpResp := &http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(expectedJSON)),
+		Body:       io.NopCloser(strings.NewReader(m.expectedJSON)),
 	}
 	return httpResp, nil
 }
 
-func TestValueRequest(t *testing.T) {
+func TestCoingeckoValueRequest(t *testing.T) {
 	expectedRate := 1000.0
 
-	client := &MockHTTPClient{expectedRate: expectedRate}
+	expectedJSON := fmt.Sprintf(`{"bitcoin":{"uah":%f}}`, expectedRate)
+	client := &MockHTTPClient{expectedJSON: expectedJSON}
 	coingecko := rateclient.NewCoingeckoRateWithHTTPClient("https://api.coingecko.com/api/v3", client)
 	actualRate, err := coingecko.Value(context.TODO(), "bitcoin", "uah")
 	if err != nil {

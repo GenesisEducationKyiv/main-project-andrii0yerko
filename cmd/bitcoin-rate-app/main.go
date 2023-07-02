@@ -17,6 +17,7 @@ func parseConfiguration() {
 	pflag.String("config", "config.yaml", "Config file name. Supported types are yaml, json, toml, ini, env")
 
 	pflag.String("clients.coingecko.url", "https://api.coingecko.com/api/v3", "Coingecko API url")
+	pflag.String("clients.binance.url", "https://www.binance.com/api/v3", "Binance API url")
 	pflag.String("sender.smtpPort", "", "SMTP port")
 	pflag.String("sender.smtpHost", "", "SMTP host")
 	pflag.String("sender.from", "", "From email address")
@@ -49,6 +50,7 @@ func parseConfiguration() {
 
 	for _, field := range []string{
 		"clients.coingecko.url",
+		"clients.binance.url",
 		"sender.smtpHost",
 		"sender.smtpPort",
 		"sender.from",
@@ -70,6 +72,7 @@ func parseConfiguration() {
 func main() {
 	parseConfiguration()
 	coingeckoURL := viper.GetString("clients.coingecko.url")
+	binanceURL := viper.GetString("clients.binance.url")
 	smtpPort := viper.GetString("sender.smtpPort")
 	smtpHost := viper.GetString("sender.smtpHost")
 	from := viper.GetString("sender.from")
@@ -77,7 +80,7 @@ func main() {
 	filename := viper.GetString("storage.filename")
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
-	controller, err := core.NewServiceWithDefaults(coingeckoURL, smtpPort, smtpHost, from, password, filename)
+	controller, err := core.NewServiceWithDefaults(coingeckoURL, binanceURL, smtpPort, smtpHost, from, password, filename)
 	if err != nil {
 		log.Fatalf("error creating controller: %s", err)
 	}

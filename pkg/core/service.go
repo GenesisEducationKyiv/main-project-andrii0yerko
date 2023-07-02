@@ -45,7 +45,7 @@ func NewService(receivers Storage[string], rateRequester RateRequester, sender S
 	return service
 }
 
-func NewServiceWithDefaults(coingeckoURL, smtpPort, smtpHost, from, password, filename string) (*Service, error) {
+func NewServiceWithDefaults(coingeckoURL, _, smtpPort, smtpHost, from, password, filename string) (*Service, error) {
 	db, err := NewFileDB(filename)
 	if err != nil {
 		return nil, err
