@@ -51,9 +51,9 @@ func NewServiceWithDefaults(coingeckoURL, binanceURL, smtpPort, smtpHost, from, 
 		return nil, err
 	}
 
-	requester := rateclient.NewCoingeckoRate(coingeckoURL)
+	requester := rateclient.NewLoggingRequester(rateclient.NewCoingeckoRate(coingeckoURL))
 	requesterChain := rateclient.NewRequesterChain(requester)
-	requester2 := rateclient.NewBinanceRate(binanceURL)
+	requester2 := rateclient.NewLoggingRequester(rateclient.NewBinanceRate(binanceURL))
 	requesterChain2 := rateclient.NewRequesterChain(requester2)
 	requesterChain.SetNext(requesterChain2)
 

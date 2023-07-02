@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -45,13 +44,13 @@ func (c CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, 
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		log.Println("CoingeckoRate.Value request error", err)
+		return nil, err
 	}
 	req.Header.Set("accept", "application/json")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		log.Println("CoingeckoRate.Value api error", err)
+		return nil, err
 	}
 
 	defer resp.Body.Close()
@@ -59,10 +58,8 @@ func (c CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, 
 	err = json.NewDecoder(resp.Body).Decode(&rateJSON)
 	value := rateJSON[coin][currency]
 	if err != nil {
-		log.Println("CoingeckoRate.Value json error", err)
+		return nil, err
 	}
-
-	log.Println("get rate:", value)
 
 	rate := model.NewExchangeRate(value, coin, currency)
 
