@@ -1,4 +1,4 @@
-package core
+package rateclient
 
 import (
 	"bitcoinrateapp/pkg/model"

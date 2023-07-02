@@ -1,11 +1,12 @@
 package core
 
 import (
+	"bitcoinrateapp/pkg/rateclient"
 	"log"
 )
 
 type Formatter interface {
-	Format(user string, rate Rate) string
+	Format(user string, rate rateclient.Rate) string
 }
 
 type Client interface {
@@ -24,7 +25,7 @@ func NewEmailSender(client Client, formatter Formatter) EmailSender {
 	}
 }
 
-func (s EmailSender) SendRate(receiver string, rate Rate) error {
+func (s EmailSender) SendRate(receiver string, rate rateclient.Rate) error {
 	rfc822 := s.formatter.Format(receiver, rate)
 	err := s.client.Send(receiver, rfc822)
 	if err != nil {

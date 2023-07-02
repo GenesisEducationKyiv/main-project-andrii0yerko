@@ -1,13 +1,13 @@
 package testenv
 
-import "bitcoinrateapp/pkg/core"
+import "bitcoinrateapp/pkg/rateclient"
 
 type MockSender struct {
 	ReceivedValues []string
-	LastRate       core.Rate
+	LastRate       rateclient.Rate
 }
 
-func (m *MockSender) SendRate(receiver string, rate core.Rate) error {
+func (m *MockSender) SendRate(receiver string, rate rateclient.Rate) error {
 	m.ReceivedValues = append(m.ReceivedValues, receiver)
 	m.LastRate = rate
 	return nil

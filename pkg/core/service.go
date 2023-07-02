@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bitcoinrateapp/pkg/rateclient"
 	"context"
 	"errors"
 	"log"
@@ -14,22 +15,16 @@ type Storage[T any] interface {
 	Contains(T) bool
 }
 
-type Rate interface {
-	Value() float64
-	Coin() string
-	Currency() string
-}
-
 type Subscriber interface {
 	Email() string
 }
 
 type RateRequester interface {
-	Value(ctx context.Context, coin, currency string) (Rate, error)
+	Value(ctx context.Context, coin, currency string) (rateclient.Rate, error)
 }
 
 type Sender interface {
-	SendRate(receiver string, rate Rate) error
+	SendRate(receiver string, rate rateclient.Rate) error
 }
 
 type Service struct {
@@ -56,7 +51,7 @@ func NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename string)
 		return nil, err
 	}
 
-	requester := NewCoingeckoRate("bitcoin", "uah")
+	requester := rateclient.NewCoingeckoRate("bitcoin", "uah")
 
 	client := NewSMTPClient(from, password, smtpHost, smtpPort)
 	formatter := NewPlainEmailFormatter(from)
