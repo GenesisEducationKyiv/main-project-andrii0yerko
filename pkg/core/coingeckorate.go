@@ -11,22 +11,39 @@ import (
 
 type coingeckoResponse map[string]map[string]float64
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 // Client for the coingecko api
 // Allows to query current exchange rate of `Coin` to `Currency`
 type CoingeckoRate struct {
 	coin, currency string
-	client         *http.Client
+	client         HTTPClient
 	description    string
 }
 
-func NewCoingeckoRate(coin, currency string) *CoingeckoRate {
+func getDescription(coin, currency string) string {
 	cointTitle := strings.ToUpper(coin[:1]) + strings.ToLower(coin[1:])
-	description := fmt.Sprintf("%s to %s Exchange Rate", cointTitle, strings.ToUpper(currency))
+	return fmt.Sprintf("%s to %s Exchange Rate", cointTitle, strings.ToUpper(currency))
+}
+
+func NewCoingeckoRate(coin, currency string) *CoingeckoRate {
+	description := getDescription(coin, currency)
 	return &CoingeckoRate{
 		coin:        coin,
 		currency:    currency,
 		description: description,
 		client:      &http.Client{},
+	}
+}
+
+func NewCoingeckoRateWithHTTPClient(coin, currency string, client HTTPClient) *CoingeckoRate {
+	return &CoingeckoRate{
+		coin:        coin,
+		currency:    currency,
+		description: getDescription(coin, currency),
+		client:      client,
 	}
 }
 

@@ -43,22 +43,6 @@ func (db *FileDB) Records() ([]string, error) {
 	return records, nil
 }
 
-func (db *FileDB) checkExists(value string) bool {
-	records, err := db.Records()
-	if err != nil {
-		log.Println("Error:", err)
-		return false
-	}
-
-	for _, record := range records {
-		if record == value {
-			return true
-		}
-	}
-
-	return false
-}
-
 // add new value to the file
 // if the same line already exists returns ErrIsDuplicate
 func (db *FileDB) Append(value string) error {
@@ -78,4 +62,20 @@ func (db *FileDB) Append(value string) error {
 		return err
 	}
 	return nil
+}
+
+func (db *FileDB) checkExists(value string) bool {
+	records, err := db.Records()
+	if err != nil {
+		log.Println("Error:", err)
+		return false
+	}
+
+	for _, record := range records {
+		if record == value {
+			return true
+		}
+	}
+
+	return false
 }

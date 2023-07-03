@@ -76,7 +76,7 @@ func main() {
 	filename := viper.GetString("storage.filename")
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
-	controller, err := core.NewService(smtpPort, smtpHost, from, password, filename)
+	controller, err := core.NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename)
 	if err != nil {
 		log.Fatalf("error creating controller: %s", err)
 	}
