@@ -13,8 +13,8 @@ func TestBinanceValueRequest(t *testing.T) {
 
 	expectedJSON := fmt.Sprintf(`{"symbol":"BTCUAH","price":"%f"}`, expectedRate)
 	client := &MockHTTPClient{expectedJSON: expectedJSON}
-	coingecko := rateclient.NewBinanceRateWithHTTPClient("https://www.binance.com/api/v3", client)
-	actualRate, err := coingecko.Value(context.TODO(), "bitcoin", "uah")
+	binance := rateclient.NewBinanceRateWithHTTPClient("https://www.binance.com/api/v3", client)
+	actualRate, err := binance.Value(context.TODO(), "bitcoin", "uah")
 	if err != nil {
 		t.Error(err)
 	}
