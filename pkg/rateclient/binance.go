@@ -18,14 +18,7 @@ type BinanceRate struct {
 	baseURL string
 }
 
-func NewBinanceRate(binanceURL string) *BinanceRate {
-	return &BinanceRate{
-		client:  &http.Client{},
-		baseURL: binanceURL,
-	}
-}
-
-func NewBinanceRateWithHTTPClient(binanceURL string, client HTTPClient) *BinanceRate {
+func NewBinanceRate(binanceURL string, client HTTPClient) *BinanceRate {
 	return &BinanceRate{
 		client:  client,
 		baseURL: binanceURL,

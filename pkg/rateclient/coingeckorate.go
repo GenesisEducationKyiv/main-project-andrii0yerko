@@ -19,14 +19,7 @@ type CoingeckoRate struct {
 	baseURL string
 }
 
-func NewCoingeckoRate(coingeckoURL string) *CoingeckoRate {
-	return &CoingeckoRate{
-		client:  &http.Client{},
-		baseURL: coingeckoURL,
-	}
-}
-
-func NewCoingeckoRateWithHTTPClient(coingeckoURL string, client HTTPClient) *CoingeckoRate {
+func NewCoingeckoRate(coingeckoURL string, client HTTPClient) *CoingeckoRate {
 	return &CoingeckoRate{
 		client:  client,
 		baseURL: coingeckoURL,

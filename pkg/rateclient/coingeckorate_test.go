@@ -28,7 +28,7 @@ func TestCoingeckoValueRequest(t *testing.T) {
 
 	expectedJSON := fmt.Sprintf(`{"bitcoin":{"uah":%f}}`, expectedRate)
 	client := &MockHTTPClient{expectedJSON: expectedJSON}
-	coingecko := rateclient.NewCoingeckoRateWithHTTPClient("https://api.coingecko.com/api/v3", client)
+	coingecko := rateclient.NewCoingeckoRate("https://api.coingecko.com/api/v3", client)
 	actualRate, err := coingecko.Value(context.TODO(), "bitcoin", "uah")
 	if err != nil {
 		t.Error(err)

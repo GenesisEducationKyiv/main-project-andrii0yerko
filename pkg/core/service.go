@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 )
 
 var ErrIsDuplicate = errors.New("is duplicate")
@@ -53,10 +54,13 @@ func NewServiceWithDefaults(
 		return nil, err
 	}
 
-	requester := rateclient.NewLoggingRequester(rateclient.NewCoingeckoRate(coingeckoURL))
-	requesterChain := rateclient.NewRequesterChain(requester)
-	requester2 := rateclient.NewLoggingRequester(rateclient.NewBinanceRate(binanceURL))
-	requesterChain2 := rateclient.NewRequesterChain(requester2)
+	requester1 := rateclient.NewCoingeckoRate(coingeckoURL, &http.Client{})
+	requesterLogger1 := rateclient.NewLoggingRequester(requester1)
+	requesterChain := rateclient.NewRequesterChain(requesterLogger1)
+
+	requester2 := rateclient.NewBinanceRate(binanceURL, &http.Client{})
+	requesterLogger2 := rateclient.NewLoggingRequester(requester2)
+	requesterChain2 := rateclient.NewRequesterChain(requesterLogger2)
 	requesterChain.SetNext(requesterChain2)
 
 	auth := NewAuthentication(from, password, smtpHost)
