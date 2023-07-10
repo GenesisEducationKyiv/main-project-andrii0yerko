@@ -1,4 +1,4 @@
-package core_test
+package storage_test
 
 import (
 	"bitcoinrateapp/pkg/testenv"

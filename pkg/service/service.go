@@ -1,9 +1,10 @@
-package core
+package service
 
 import (
 	"bitcoinrateapp/pkg/email"
 	"bitcoinrateapp/pkg/model"
 	"bitcoinrateapp/pkg/rateclient"
+	"bitcoinrateapp/pkg/storage"
 
 	"context"
 	"errors"
@@ -52,7 +53,7 @@ func NewService(receivers Storage[string], rateRequester RateRequester, sender S
 func NewServiceWithDefaults(
 	coingeckoURL, binanceURL, smtpPort, smtpHost, from, password, filename string,
 ) (*Service, error) {
-	db, err := NewFileDB(filename)
+	db, err := storage.NewFileDB(filename)
 	if err != nil {
 		return nil, err
 	}

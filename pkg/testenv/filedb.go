@@ -1,19 +1,19 @@
 package testenv
 
 import (
-	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/storage"
 	"os"
 	"testing"
 )
 
-func NewTemporaryFileDB(t *testing.T) (*core.FileDB, *os.File) {
+func NewTemporaryFileDB(t *testing.T) (*storage.FileDB, *os.File) {
 	file, err := os.CreateTemp(os.TempDir(), "prefix")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { os.Remove(file.Name()) })
 
-	db, err := core.NewFileDB(file.Name())
+	db, err := storage.NewFileDB(file.Name())
 	if err != nil {
 		t.Fatal(err)
 	}

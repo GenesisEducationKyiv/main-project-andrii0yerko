@@ -1,8 +1,8 @@
 package app
 
 import (
-	"bitcoinrateapp/pkg/core"
 	"bitcoinrateapp/pkg/model"
+	"bitcoinrateapp/pkg/service"
 	"encoding/json"
 	"errors"
 	"log"
@@ -11,11 +11,11 @@ import (
 
 // Methods for HTTP API endpoints
 type ExchangeRateHandler struct {
-	Service *core.Service
+	Service *service.Service
 }
 
-func NewExchangeRateHandler(service *core.Service) *ExchangeRateHandler {
-	return &ExchangeRateHandler{Service: service}
+func NewExchangeRateHandler(btcservice *service.Service) *ExchangeRateHandler {
+	return &ExchangeRateHandler{Service: btcservice}
 }
 
 func (e ExchangeRateHandler) GetRoot(w http.ResponseWriter, _ *http.Request) {
@@ -63,7 +63,7 @@ func (e ExchangeRateHandler) PostSubscribe(w http.ResponseWriter, r *http.Reques
 	switch {
 	case err == nil:
 		w.WriteHeader(http.StatusOK)
-	case errors.Is(err, core.ErrIsDuplicate):
+	case errors.Is(err, service.ErrIsDuplicate):
 		w.WriteHeader(http.StatusConflict)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)

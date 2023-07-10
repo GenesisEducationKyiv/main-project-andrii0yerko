@@ -2,7 +2,7 @@ package main
 
 import (
 	"bitcoinrateapp/pkg/app"
-	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/service"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -80,7 +80,9 @@ func main() {
 	filename := viper.GetString("storage.filename")
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
-	controller, err := core.NewServiceWithDefaults(coingeckoURL, binanceURL, smtpPort, smtpHost, from, password, filename)
+	controller, err := service.NewServiceWithDefaults(
+		coingeckoURL, binanceURL, smtpPort, smtpHost, from, password, filename,
+	)
 	if err != nil {
 		log.Fatalf("error creating controller: %s", err)
 	}
