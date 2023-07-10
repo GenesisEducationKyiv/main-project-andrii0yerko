@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bitcoinrateapp/pkg/app"
 	"bitcoinrateapp/pkg/core"
-	"bitcoinrateapp/pkg/http"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -84,11 +84,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating controller: %s", err)
 	}
-	handler := http.NewExchangeRateHandler(controller)
-	server := http.NewServer(handler, addr)
+	handler := app.NewExchangeRateHandler(controller)
+	server := app.NewServer(handler, addr)
 
 	err = server.Start()
-	if errors.Is(err, http.ErrServerClosed) {
+	if errors.Is(err, app.ErrServerClosed) {
 		log.Println("server closed")
 	} else if err != nil {
 		log.Fatalf("error starting server: %s", err)

@@ -1,8 +1,8 @@
 package functional_test
 
 import (
+	"bitcoinrateapp/pkg/app"
 	"bitcoinrateapp/pkg/core"
-	app "bitcoinrateapp/pkg/http"
 	"bitcoinrateapp/pkg/testenv"
 	"errors"
 	"fmt"
