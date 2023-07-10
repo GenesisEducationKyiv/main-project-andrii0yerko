@@ -39,6 +39,7 @@ require (
 	github.com/mailhog/mhsendmail v0.2.0 // indirect
 	github.com/mailhog/smtp v1.0.1 // indirect
 	github.com/mailhog/storage v1.0.1 // indirect
+	github.com/matthewmcnew/archtest v0.0.0-20191104172020-f1b53a45c22d // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/ogier/pflag v0.0.1 // indirect
