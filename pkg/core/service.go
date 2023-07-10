@@ -1,7 +1,10 @@
 package core
 
 import (
+	"bitcoinrateapp/pkg/email"
+	"bitcoinrateapp/pkg/model"
 	"bitcoinrateapp/pkg/rateclient"
+
 	"context"
 	"errors"
 	"log"
@@ -21,11 +24,11 @@ type Subscriber interface {
 }
 
 type RateRequester interface {
-	Value(ctx context.Context, coin, currency string) (rateclient.Rate, error)
+	Value(ctx context.Context, coin, currency string) (model.Rate, error)
 }
 
 type Sender interface {
-	SendRate(receiver string, rate rateclient.Rate) error
+	SendRate(receiver string, rate model.Rate) error
 }
 
 type Service struct {
@@ -63,10 +66,10 @@ func NewServiceWithDefaults(
 	requesterChain2 := rateclient.NewRequesterChain(requesterLogger2)
 	requesterChain.SetNext(requesterChain2)
 
-	auth := NewAuthentication(from, password, smtpHost)
-	client := NewSMTPClient(from, auth, smtpHost, smtpPort)
-	formatter := NewPlainEmailFormatter(from)
-	sender := NewEmailSender(client, formatter)
+	auth := email.NewAuthentication(from, password, smtpHost)
+	client := email.NewSMTPClient(from, auth, smtpHost, smtpPort)
+	formatter := email.NewPlainEmailFormatter(from)
+	sender := email.NewSender(client, formatter)
 
 	service := NewService(db, requesterChain, sender)
 	return service, nil

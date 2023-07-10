@@ -26,7 +26,7 @@ func NewCoingeckoRate(coingeckoURL string, client HTTPClient) *CoingeckoRate {
 	}
 }
 
-func (c CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, error) {
+func (c CoingeckoRate) Value(ctx context.Context, coin, currency string) (model.Rate, error) {
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
 		"%s/simple/price?ids=%s&vs_currencies=%s",

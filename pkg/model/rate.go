@@ -1,4 +1,4 @@
-package rateclient
+package model
 
 type Rate interface {
 	Value() float64
