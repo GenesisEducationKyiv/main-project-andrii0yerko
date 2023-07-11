@@ -137,4 +137,4 @@ Documentation for the endpoints can be found in [`docs/`](./docs/) folder. Postm
 
 ## Architecture
 
-![](./docs/architecture.svg)
+![](./docs/architecture.drawio.svg)
