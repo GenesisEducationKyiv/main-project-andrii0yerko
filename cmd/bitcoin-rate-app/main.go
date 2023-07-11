@@ -90,6 +90,13 @@ func main() {
 		log.Fatalf("%s", err)
 	}
 
+	auth := email.NewAuthentication(from, password, smtpHost)
+	client := email.NewSMTPClient(from, auth, smtpHost, smtpPort)
+	formatter := email.NewPlainEmailFormatter(from)
+	sender := email.NewSender(client, formatter)
+
+	senderService := service.NewSenderService(db, sender)
+
 	requester1 := rateclient.NewCoingeckoRate(coingeckoURL, &http.Client{})
 	requesterLogger1 := rateclient.NewLoggingRequester(requester1)
 	requesterChain := rateclient.NewRequesterChain(requesterLogger1)
@@ -99,16 +106,12 @@ func main() {
 	requesterChain2 := rateclient.NewRequesterChain(requesterLogger2)
 	requesterChain.SetNext(requesterChain2)
 
-	auth := email.NewAuthentication(from, password, smtpHost)
-	client := email.NewSMTPClient(from, auth, smtpHost, smtpPort)
-	formatter := email.NewPlainEmailFormatter(from)
-	sender := email.NewSender(client, formatter)
+	rateService := service.NewRateService(senderService, requesterChain, "bitcoin", "uah")
 
-	btcservice := service.NewService(db, requesterChain, sender, "bitcoin", "uah")
 	if err != nil {
 		log.Fatalf("error creating service: %s", err)
 	}
-	handler := app.NewExchangeRateHandler(btcservice)
+	handler := app.NewExchangeRateHandler(senderService, rateService)
 	server := app.NewServer(handler, addr)
 
 	err = server.Start()
