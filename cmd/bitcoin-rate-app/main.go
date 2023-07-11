@@ -2,11 +2,15 @@ package main
 
 import (
 	"bitcoinrateapp/pkg/app"
+	"bitcoinrateapp/pkg/email"
+	"bitcoinrateapp/pkg/rateclient"
 	"bitcoinrateapp/pkg/service"
+	"bitcoinrateapp/pkg/storage"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -80,13 +84,31 @@ func main() {
 	filename := viper.GetString("storage.filename")
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
-	controller, err := service.NewServiceWithDefaults(
-		coingeckoURL, binanceURL, smtpPort, smtpHost, from, password, filename,
-	)
+
+	db, err := storage.NewFileDB(filename)
 	if err != nil {
-		log.Fatalf("error creating controller: %s", err)
+		log.Fatalf("%s", err)
 	}
-	handler := app.NewExchangeRateHandler(controller)
+
+	requester1 := rateclient.NewCoingeckoRate(coingeckoURL, &http.Client{})
+	requesterLogger1 := rateclient.NewLoggingRequester(requester1)
+	requesterChain := rateclient.NewRequesterChain(requesterLogger1)
+
+	requester2 := rateclient.NewBinanceRate(binanceURL, &http.Client{})
+	requesterLogger2 := rateclient.NewLoggingRequester(requester2)
+	requesterChain2 := rateclient.NewRequesterChain(requesterLogger2)
+	requesterChain.SetNext(requesterChain2)
+
+	auth := email.NewAuthentication(from, password, smtpHost)
+	client := email.NewSMTPClient(from, auth, smtpHost, smtpPort)
+	formatter := email.NewPlainEmailFormatter(from)
+	sender := email.NewSender(client, formatter)
+
+	btcservice := service.NewService(db, requesterChain, sender, "bitcoin", "uah")
+	if err != nil {
+		log.Fatalf("error creating service: %s", err)
+	}
+	handler := app.NewExchangeRateHandler(btcservice)
 	server := app.NewServer(handler, addr)
 
 	err = server.Start()

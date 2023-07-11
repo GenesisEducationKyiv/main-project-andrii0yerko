@@ -10,7 +10,7 @@ import (
 
 func TestServiceRate(t *testing.T) {
 	rate := 100.0
-	btcservice := service.NewService(nil, &testenv.MockRate{ExpectedRate: rate}, nil)
+	btcservice := service.NewService(nil, &testenv.MockRate{ExpectedRate: rate}, nil, "bitcoin", "uah")
 	actualRate, err := btcservice.ExchangeRate()
 	if err != nil {
 		t.Fatal(err)
@@ -27,7 +27,7 @@ func TestServiceSubscribeSuccessfully(t *testing.T) {
 		t.Fatal(err)
 	}
 	db := &testenv.MockDB{}
-	btcservice := service.NewService(db, nil, nil)
+	btcservice := service.NewService(db, nil, nil, "bitcoin", "uah")
 
 	err = btcservice.Subscribe(subscriber)
 	if err != nil {
@@ -49,7 +49,7 @@ func TestServiceSubscribeError(t *testing.T) {
 	}
 	expError := service.ErrIsDuplicate
 	db := &testenv.MockErrorDB{ExpectedError: expError}
-	btcservice := service.NewService(db, nil, nil)
+	btcservice := service.NewService(db, nil, nil, "bitcoin", "uah")
 
 	err = btcservice.Subscribe(subscriber)
 	if !errors.Is(err, expError) {
@@ -63,7 +63,7 @@ func TestServiceNotify(t *testing.T) {
 	db := &testenv.MockDB{Memory: receivers}
 	rateProvider := &testenv.MockRate{ExpectedRate: rate}
 	sender := &testenv.MockSender{}
-	btcservice := service.NewService(db, rateProvider, sender)
+	btcservice := service.NewService(db, rateProvider, sender, "bitcoin", "uah")
 
 	err := btcservice.Notify()
 
