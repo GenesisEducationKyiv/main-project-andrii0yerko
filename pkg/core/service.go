@@ -53,7 +53,8 @@ func NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename string)
 
 	requester := rateclient.NewCoingeckoRate()
 
-	client := NewSMTPClient(from, password, smtpHost, smtpPort)
+	auth := NewAuthentication(from, password, smtpHost)
+	client := NewSMTPClient(from, auth, smtpHost, smtpPort)
 	formatter := NewPlainEmailFormatter(from)
 	sender := NewEmailSender(client, formatter)
 

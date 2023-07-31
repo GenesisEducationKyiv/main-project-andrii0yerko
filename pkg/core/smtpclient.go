@@ -8,14 +8,14 @@ import (
 
 type SMTPClient struct {
 	from               string
-	password           string
+	auth               smtp.Auth
 	smtpHost, smtpPort string
 }
 
-func NewSMTPClient(from, password, smtpHost, smtpPort string) SMTPClient {
+func NewSMTPClient(from string, auth smtp.Auth, smtpHost, smtpPort string) SMTPClient {
 	return SMTPClient{
 		from:     from,
-		password: password,
+		auth:     auth,
 		smtpHost: smtpHost,
 		smtpPort: smtpPort,
 	}
@@ -29,7 +29,7 @@ func (s SMTPClient) Send(receiver, message string) error {
 	messageBytes := []byte(message)
 	smtpURL := fmt.Sprintf("%s:%s", s.smtpHost, s.smtpPort)
 
-	err := smtp.SendMail(smtpURL, s.authentication(), s.from, to, messageBytes)
+	err := smtp.SendMail(smtpURL, s.auth, s.from, to, messageBytes)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -38,12 +38,12 @@ func (s SMTPClient) Send(receiver, message string) error {
 	return nil
 }
 
-func (s SMTPClient) authentication() smtp.Auth {
+func NewAuthentication(username, password, host string) smtp.Auth {
 	var auth smtp.Auth
-	if s.password == "" {
+	if password == "" {
 		auth = nil
 	} else {
-		auth = smtp.PlainAuth("", s.from, s.password, s.smtpHost)
+		auth = smtp.PlainAuth("", username, password, host)
 	}
 	return auth
 }

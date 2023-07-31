@@ -28,7 +28,8 @@ func TestEmailSendIntegration(t *testing.T) {
 	password := ""
 	host := "localhost"
 
-	client := core.NewSMTPClient(from, password, host, smtpPort)
+	auth := core.NewAuthentication(from, password, host)
+	client := core.NewSMTPClient(from, auth, host, smtpPort)
 	formatter := core.NewPlainEmailFormatter(from)
 	sender := core.NewEmailSender(client, formatter)
 
