@@ -16,25 +16,29 @@ type HTTPClient interface {
 }
 
 type CoingeckoRate struct {
-	client HTTPClient
+	client  HTTPClient
+	baseURL string
 }
 
-func NewCoingeckoRate() *CoingeckoRate {
+func NewCoingeckoRate(coingeckoURL string) *CoingeckoRate {
 	return &CoingeckoRate{
-		client: &http.Client{},
+		client:  &http.Client{},
+		baseURL: coingeckoURL,
 	}
 }
 
-func NewCoingeckoRateWithHTTPClient(client HTTPClient) *CoingeckoRate {
+func NewCoingeckoRateWithHTTPClient(coingeckoURL string, client HTTPClient) *CoingeckoRate {
 	return &CoingeckoRate{
-		client: client,
+		client:  client,
+		baseURL: coingeckoURL,
 	}
 }
 
 func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, error) {
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
-		"https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=%s",
+		"%s/simple/price?ids=%s&vs_currencies=%s",
+		requester.baseURL,
 		coin,
 		currency,
 	)
