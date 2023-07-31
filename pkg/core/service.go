@@ -1,78 +1,89 @@
 package core
 
 import (
+	"bitcoinrateapp/pkg/rateclient"
 	"context"
 	"errors"
-	"fmt"
 	"log"
-	"strings"
 )
 
-// An abstract storage which allows to read and add values
+var ErrIsDuplicate = errors.New("is duplicate")
+
 type Storage[T any] interface {
 	Append(T) error
 	Records() ([]T, error)
+	Contains(T) bool
 }
 
-// Abstract requester which allows to extract a specific value, and its description
-type ValueRequester[T any] interface {
-	Value(context.Context) (T, error)
-	Description() string
+type Subscriber interface {
+	Email() string
 }
 
-// Defines behavior of sending data for the users
+type RateRequester interface {
+	Value(ctx context.Context, coin, currency string) (rateclient.Rate, error)
+}
+
 type Sender interface {
-	Send(receiver string, subject string, message string) error
+	SendRate(receiver string, rate rateclient.Rate) error
 }
 
-// handles main logic of the App.
-// responsible for providing access to the aggregated core objects
-// and for setting up their interaction as well
 type Service struct {
-	receivers     Storage[string]
-	rateRequester ValueRequester[float64]
-	sender        Sender
+	receivers      Storage[string]
+	rateRequester  RateRequester
+	sender         Sender
+	coin, currency string
 }
 
-func NewService(receivers Storage[string], rateRequester ValueRequester[float64], sender Sender) *Service {
+func NewService(receivers Storage[string], rateRequester RateRequester, sender Sender) *Service {
 	service := &Service{
 		receivers:     receivers,
 		rateRequester: rateRequester,
 		sender:        sender,
+		coin:          "bitcoin",
+		currency:      "uah",
 	}
 	return service
 }
 
-func NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename string) (*Service, error) {
+func NewServiceWithDefaults(coingeckoURL, smtpPort, smtpHost, from, password, filename string) (*Service, error) {
 	db, err := NewFileDB(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	requester := NewCoingeckoRate("bitcoin", "uah")
-	sender := NewEmailSender(from, password, smtpHost, smtpPort)
+	requester := rateclient.NewCoingeckoRate(coingeckoURL)
+
+	auth := NewAuthentication(from, password, smtpHost)
+	client := NewSMTPClient(from, auth, smtpHost, smtpPort)
+	formatter := NewPlainEmailFormatter(from)
+	sender := NewEmailSender(client, formatter)
 
 	service := NewService(db, requester, sender)
 	return service, nil
 }
 
 func (s Service) ExchangeRate() (float64, error) {
-	return s.rateRequester.Value(context.TODO())
+	rate, err := s.rateRequester.Value(context.TODO(), s.coin, s.currency)
+	if err != nil {
+		return 0, err
+	}
+	return rate.Value(), nil
 }
 
-func (s Service) Subscribe(receiver string) error {
-	receiver = strings.ToLower(strings.TrimSpace(receiver))
+func (s Service) Subscribe(subscriber Subscriber) error {
+	receiver := subscriber.Email()
+	if s.receivers.Contains(receiver) {
+		return ErrIsDuplicate
+	}
 	return s.receivers.Append(receiver)
 }
 
 func (s Service) Notify() error {
-	value, err := s.ExchangeRate()
+	rate, err := s.rateRequester.Value(context.TODO(), s.coin, s.currency)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	subject := s.rateRequester.Description()
-	message := fmt.Sprintf("%f", value)
 
 	receivers, err := s.receivers.Records()
 	if err != nil {
@@ -82,7 +93,7 @@ func (s Service) Notify() error {
 
 	sendErrs := make([]error, 0, len(receivers))
 	for _, receiver := range receivers {
-		sendErr := s.sender.Send(receiver, subject, message)
+		sendErr := s.sender.SendRate(receiver, rate)
 		if sendErr != nil {
 			log.Println(sendErr)
 			sendErrs = append(sendErrs, sendErr)

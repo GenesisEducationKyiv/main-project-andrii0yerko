@@ -1,7 +1,7 @@
-package core_test
+package rateclient_test
 
 import (
-	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/rateclient"
 	"context"
 	"fmt"
 	"io"
@@ -28,13 +28,13 @@ func TestValueRequest(t *testing.T) {
 	expectedRate := 1000.0
 
 	client := &MockHTTPClient{expectedRate: expectedRate}
-	coingecko := core.NewCoingeckoRateWithHTTPClient("bitcoin", "uah", client)
-	actualRate, err := coingecko.Value(context.TODO())
+	coingecko := rateclient.NewCoingeckoRateWithHTTPClient("https://api.coingecko.com/api/v3", client)
+	actualRate, err := coingecko.Value(context.TODO(), "bitcoin", "uah")
 	if err != nil {
 		t.Error(err)
 	}
 
-	if math.Abs(actualRate-expectedRate) > 0.0001 {
+	if math.Abs(actualRate.Value()-expectedRate) > 0.0001 {
 		t.Errorf("expected %f, got %f", expectedRate, actualRate)
 	}
 }

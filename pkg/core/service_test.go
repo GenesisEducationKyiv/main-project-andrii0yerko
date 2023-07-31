@@ -2,9 +2,9 @@ package core_test
 
 import (
 	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/model"
 	"bitcoinrateapp/pkg/testenv"
 	"errors"
-	"fmt"
 	"testing"
 )
 
@@ -22,11 +22,14 @@ func TestServiceRate(t *testing.T) {
 
 func TestServiceSubscribeSuccessfully(t *testing.T) {
 	receiver := "abc@abc.test"
+	subscriber, err := model.NewSubscriber(receiver)
+	if err != nil {
+		t.Fatal(err)
+	}
 	db := &testenv.MockDB{}
 	service := core.NewService(db, nil, nil)
 
-	err := service.Subscribe(receiver)
-
+	err = service.Subscribe(subscriber)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,19 +43,21 @@ func TestServiceSubscribeSuccessfully(t *testing.T) {
 
 func TestServiceSubscribeError(t *testing.T) {
 	receiver := "abc@abc.test"
+	subscriber, err := model.NewSubscriber(receiver)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expError := core.ErrIsDuplicate
 	db := &testenv.MockErrorDB{ExpectedError: expError}
 	service := core.NewService(db, nil, nil)
 
-	err := service.Subscribe(receiver)
-
+	err = service.Subscribe(subscriber)
 	if !errors.Is(err, expError) {
 		t.Fatal(err)
 	}
 }
 
 func TestServiceNotify(t *testing.T) {
-	// receiver := "abc@abc.test"
 	receivers := []string{"abc@abc.test", "abc2@abc.test"}
 	rate := 100.0
 	db := &testenv.MockDB{Memory: receivers}
@@ -75,10 +80,7 @@ func TestServiceNotify(t *testing.T) {
 	if sender.ReceivedValues[1] != receivers[1] {
 		t.Errorf("unexpected receiver: %s", sender.ReceivedValues[1])
 	}
-	if sender.LastSubject != rateProvider.Description() {
-		t.Errorf("unexpected subject: %s", sender.LastSubject)
-	}
-	if sender.LastMessage != fmt.Sprintf("%f", rate) {
-		t.Errorf("unexpected message: %s", sender.LastMessage)
+	if sender.LastRate.Value() != rate {
+		t.Errorf("unexpected message: %s", sender.LastRate)
 	}
 }

@@ -11,3 +11,7 @@ func (m *MockErrorDB) Records() ([]string, error) {
 func (m *MockErrorDB) Append(_ string) error {
 	return m.ExpectedError
 }
+
+func (m *MockErrorDB) Contains(_ string) bool {
+	return true
+}

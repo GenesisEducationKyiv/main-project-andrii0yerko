@@ -1,15 +1,15 @@
 package testenv
 
-import "context"
+import (
+	"bitcoinrateapp/pkg/model"
+	"bitcoinrateapp/pkg/rateclient"
+	"context"
+)
 
 type MockRate struct {
 	ExpectedRate float64
 }
 
-func (m *MockRate) Value(_ context.Context) (float64, error) {
-	return m.ExpectedRate, nil
-}
-
-func (m *MockRate) Description() string {
-	return "mock rate"
+func (m *MockRate) Value(_ context.Context, _, _ string) (rateclient.Rate, error) {
+	return model.NewExchangeRate(m.ExpectedRate, "coin", "currency"), nil
 }

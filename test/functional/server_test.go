@@ -24,7 +24,15 @@ func TestHTTPServer(t *testing.T) {
 	}
 
 	receivers, file := testenv.NewTemporaryFileDB(t)
-	sender := core.NewEmailSender("test@email.com", "", "localhost", smtpPort)
+
+	from := "test@email.com"
+	password := ""
+	host := "localhost"
+
+	auth := core.NewAuthentication(from, password, host)
+	client := core.NewSMTPClient(from, auth, host, smtpPort)
+	formatter := core.NewPlainEmailFormatter(from)
+	sender := core.NewEmailSender(client, formatter)
 	rateRequester := &testenv.MockRate{ExpectedRate: 1000}
 
 	service := core.NewService(receivers, rateRequester, sender)
@@ -69,6 +77,19 @@ func testGetRate(addr string, t *testing.T) {
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Read body error: %s", err)
+	}
+	if len(body) == 0 {
+		t.Errorf("Empty body")
+	}
+	for _, b := range body {
+		if b != '.' && (b < '0' || b > '9') {
+			t.Errorf("Body contains non-digit: %c", b)
+		}
 	}
 }
 

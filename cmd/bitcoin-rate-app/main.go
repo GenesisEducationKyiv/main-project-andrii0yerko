@@ -13,13 +13,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Load app configuration from both config file and command line args
-// Custom config path can be passed with `--config path/to/my/config.yaml`
-// By default - searching for file `./config.yaml`
 func parseConfiguration() {
-	// Set up the command line flags
 	pflag.String("config", "config.yaml", "Config file name. Supported types are yaml, json, toml, ini, env")
 
+	pflag.String("clients.coingecko.url", "https://api.coingecko.com/api/v3", "Coingecko API url")
 	pflag.String("sender.smtpPort", "", "SMTP port")
 	pflag.String("sender.smtpHost", "", "SMTP host")
 	pflag.String("sender.from", "", "From email address")
@@ -30,7 +27,6 @@ func parseConfiguration() {
 
 	pflag.Parse()
 
-	// Bind command line flags to Viper
 	err := viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
 		log.Fatalf("Error binding flags: %s", err)
@@ -40,7 +36,6 @@ func parseConfiguration() {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// Set up the config file name and path
 	viper.SetConfigFile(viper.GetString("config"))
 	viper.AddConfigPath(".")
 	if err = viper.ReadInConfig(); err != nil {
@@ -52,9 +47,14 @@ func parseConfiguration() {
 		}
 	}
 
-	// Ensure that all required values are given
 	for _, field := range []string{
-		"sender.smtpHost", "sender.smtpPort", "sender.from", "storage.filename", "server.host", "server.port",
+		"clients.coingecko.url",
+		"sender.smtpHost",
+		"sender.smtpPort",
+		"sender.from",
+		"storage.filename",
+		"server.host",
+		"server.port",
 	} {
 		if viper.GetString(field) == "" {
 			log.Fatalf(
@@ -69,6 +69,7 @@ func parseConfiguration() {
 
 func main() {
 	parseConfiguration()
+	coingeckoURL := viper.GetString("clients.coingecko.url")
 	smtpPort := viper.GetString("sender.smtpPort")
 	smtpHost := viper.GetString("sender.smtpHost")
 	from := viper.GetString("sender.from")
@@ -76,7 +77,7 @@ func main() {
 	filename := viper.GetString("storage.filename")
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
-	controller, err := core.NewServiceWithDefaults(smtpPort, smtpHost, from, password, filename)
+	controller, err := core.NewServiceWithDefaults(coingeckoURL, smtpPort, smtpHost, from, password, filename)
 	if err != nil {
 		log.Fatalf("error creating controller: %s", err)
 	}
