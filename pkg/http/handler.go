@@ -63,6 +63,7 @@ func (e ExchangeRateHandler) PostSubscribe(w http.ResponseWriter, r *http.Reques
 
 	subscriber, err := model.NewSubscriber(email)
 	if errors.Is(err, model.ErrEmptyEmail) {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
