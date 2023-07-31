@@ -19,10 +19,10 @@ type Server struct {
 
 func NewServer(handler *ExchangeRateHandler, addr string) *Server {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", handler.GetRoot)
-	mux.HandleFunc("/rate", handler.GetRate)
-	mux.HandleFunc("/subscribe", handler.PostSubscribe)
-	mux.HandleFunc("/sendEmails", handler.PostSendEmails)
+	mux.HandleFunc("/", AllowMethods(handler.GetRoot, http.MethodGet))
+	mux.HandleFunc("/rate", AllowMethods(handler.GetRate, http.MethodGet))
+	mux.HandleFunc("/subscribe", AllowMethods(handler.PostSubscribe, http.MethodPost))
+	mux.HandleFunc("/sendEmails", AllowMethods(handler.PostSendEmails, http.MethodPost))
 
 	return &Server{
 		handler: handler,
@@ -38,4 +38,16 @@ func (s *Server) Start() error {
 
 func (s *Server) Shutdown() error {
 	return s.server.Shutdown(context.TODO())
+}
+
+func AllowMethods(handler http.HandlerFunc, methods ...string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		for _, method := range methods {
+			if r.Method == method {
+				handler(w, r)
+				return
+			}
+		}
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
 }
