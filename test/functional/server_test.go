@@ -3,6 +3,7 @@ package functional_test
 import (
 	"bitcoinrateapp/pkg/app"
 	"bitcoinrateapp/pkg/email"
+	"bitcoinrateapp/pkg/logger"
 	"bitcoinrateapp/pkg/service"
 	"bitcoinrateapp/pkg/testenv"
 	"errors"
@@ -39,7 +40,8 @@ func TestHTTPServer(t *testing.T) {
 	senderService := service.NewSenderService(receivers, sender)
 	rateService := service.NewRateService(senderService, rateRequester, "bitcoin", "uah")
 
-	handler := app.NewExchangeRateHandler(senderService, rateService)
+	requestlogger := logger.NewConsoleLogger()
+	handler := app.NewExchangeRateHandler(senderService, rateService, requestlogger)
 	addr := "localhost:3333"
 	startServer(handler, addr, t)
 

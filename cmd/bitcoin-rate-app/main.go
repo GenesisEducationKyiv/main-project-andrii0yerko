@@ -3,6 +3,7 @@ package main
 import (
 	"bitcoinrateapp/pkg/app"
 	"bitcoinrateapp/pkg/email"
+	"bitcoinrateapp/pkg/logger"
 	"bitcoinrateapp/pkg/rateclient"
 	"bitcoinrateapp/pkg/service"
 	"bitcoinrateapp/pkg/storage"
@@ -111,7 +112,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating service: %s", err)
 	}
-	handler := app.NewExchangeRateHandler(senderService, rateService)
+
+	requestlogger := logger.NewConsoleLogger()
+	handler := app.NewExchangeRateHandler(senderService, rateService, requestlogger)
 	server := app.NewServer(handler, addr)
 
 	err = server.Start()
