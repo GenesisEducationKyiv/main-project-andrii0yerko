@@ -21,6 +21,7 @@ func (e ExchangeRateHandler) GetRate(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(jsonResp)
 	if err != nil {
 		e.logger.Error(fmt.Sprintf("Error happened in writing response. Err: %s", err))
@@ -28,7 +29,6 @@ func (e ExchangeRateHandler) GetRate(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 	e.logger.Info("rate returned successfully")
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 }
 

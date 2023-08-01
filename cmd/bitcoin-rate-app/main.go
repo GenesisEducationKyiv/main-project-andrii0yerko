@@ -30,6 +30,7 @@ func parseConfiguration() {
 	pflag.String("storage.filename", "emails.dat", "Filename for emails storage. Default is emails.dat")
 	pflag.String("server.host", "0.0.0.0", "Host to serve HTTP api. Default is 0.0.0.0")
 	pflag.String("server.port", "3333", "Post to serve HTTP api. Default is 3333")
+	pflag.String("logger.kafka.url", "", "Kafka url")
 
 	pflag.Parse()
 
@@ -62,6 +63,7 @@ func parseConfiguration() {
 		"storage.filename",
 		"server.host",
 		"server.port",
+		"logger.rabbitmq.url",
 	} {
 		if viper.GetString(field) == "" {
 			log.Fatalf(
@@ -83,6 +85,7 @@ func main() {
 	from := viper.GetString("sender.from")
 	password := viper.GetString("sender.password")
 	filename := viper.GetString("storage.filename")
+	loggerRabbitMQURL := viper.GetString("logger.rabbitmq.url")
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
 
@@ -113,7 +116,15 @@ func main() {
 		log.Fatalf("error creating service: %s", err)
 	}
 
-	requestlogger := logger.NewConsoleLogger()
+	requestlogger, err := logger.NewRabbitMQLogger(
+		loggerRabbitMQURL,
+		"bitcoinrateapp-logs",
+		"logs",
+		"logs-queue",
+	)
+	if err != nil {
+		log.Fatalf("error creating logger: %s", err)
+	}
 	handler := app.NewExchangeRateHandler(senderService, rateService, requestlogger)
 	server := app.NewServer(handler, addr)
 
