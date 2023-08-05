@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -20,38 +19,31 @@ type CoingeckoRate struct {
 	baseURL string
 }
 
-func NewCoingeckoRate(coingeckoURL string) *CoingeckoRate {
-	return &CoingeckoRate{
-		client:  &http.Client{},
-		baseURL: coingeckoURL,
-	}
-}
-
-func NewCoingeckoRateWithHTTPClient(coingeckoURL string, client HTTPClient) *CoingeckoRate {
+func NewCoingeckoRate(coingeckoURL string, client HTTPClient) *CoingeckoRate {
 	return &CoingeckoRate{
 		client:  client,
 		baseURL: coingeckoURL,
 	}
 }
 
-func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, error) {
+func (c CoingeckoRate) Value(ctx context.Context, coin, currency string) (Rate, error) {
 	// https://www.coingecko.com/en/api/documentation
 	url := fmt.Sprintf(
 		"%s/simple/price?ids=%s&vs_currencies=%s",
-		requester.baseURL,
+		c.baseURL,
 		coin,
 		currency,
 	)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		log.Println("CoingeckoRate.Value request error", err)
+		return nil, err
 	}
 	req.Header.Set("accept", "application/json")
 
-	resp, err := requester.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
-		log.Println("CoingeckoRate.Value api error", err)
+		return nil, err
 	}
 
 	defer resp.Body.Close()
@@ -59,10 +51,8 @@ func (requester CoingeckoRate) Value(ctx context.Context, coin, currency string)
 	err = json.NewDecoder(resp.Body).Decode(&rateJSON)
 	value := rateJSON[coin][currency]
 	if err != nil {
-		log.Println("CoingeckoRate.Value json error", err)
+		return nil, err
 	}
-
-	log.Println("get rate:", value)
 
 	rate := model.NewExchangeRate(value, coin, currency)
 

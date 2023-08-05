@@ -11,3 +11,5 @@ server:
 clients:
   coingecko:
     url: "https://api.coingecko.com/api/v3"
+  binance:
+    url: "https://www.binance.com/api/v3"

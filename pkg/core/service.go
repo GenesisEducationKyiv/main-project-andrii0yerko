@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 )
 
 var ErrIsDuplicate = errors.New("is duplicate")
@@ -45,20 +46,29 @@ func NewService(receivers Storage[string], rateRequester RateRequester, sender S
 	return service
 }
 
-func NewServiceWithDefaults(coingeckoURL, smtpPort, smtpHost, from, password, filename string) (*Service, error) {
+func NewServiceWithDefaults(
+	coingeckoURL, binanceURL, smtpPort, smtpHost, from, password, filename string,
+) (*Service, error) {
 	db, err := NewFileDB(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	requester := rateclient.NewCoingeckoRate(coingeckoURL)
+	requester1 := rateclient.NewCoingeckoRate(coingeckoURL, &http.Client{})
+	requesterLogger1 := rateclient.NewLoggingRequester(requester1)
+	requesterChain := rateclient.NewRequesterChain(requesterLogger1)
+
+	requester2 := rateclient.NewBinanceRate(binanceURL, &http.Client{})
+	requesterLogger2 := rateclient.NewLoggingRequester(requester2)
+	requesterChain2 := rateclient.NewRequesterChain(requesterLogger2)
+	requesterChain.SetNext(requesterChain2)
 
 	auth := NewAuthentication(from, password, smtpHost)
 	client := NewSMTPClient(from, auth, smtpHost, smtpPort)
 	formatter := NewPlainEmailFormatter(from)
 	sender := NewEmailSender(client, formatter)
 
-	service := NewService(db, requester, sender)
+	service := NewService(db, requesterChain, sender)
 	return service, nil
 }
 
