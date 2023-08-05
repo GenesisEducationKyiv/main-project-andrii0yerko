@@ -1,6 +1,7 @@
 package rateclient
 
 import (
+	"bitcoinrateapp/pkg/model"
 	"context"
 	"log"
 )
@@ -15,7 +16,7 @@ func NewLoggingRequester(adaptee requester) *LoggingRequester {
 	}
 }
 
-func (l LoggingRequester) Value(ctx context.Context, coin, currency string) (Rate, error) {
+func (l LoggingRequester) Value(ctx context.Context, coin, currency string) (model.Rate, error) {
 	rate, err := l.adaptee.Value(ctx, coin, currency)
 	if err != nil {
 		return nil, err

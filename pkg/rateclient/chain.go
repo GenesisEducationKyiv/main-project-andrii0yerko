@@ -1,11 +1,12 @@
 package rateclient
 
 import (
+	"bitcoinrateapp/pkg/model"
 	"context"
 )
 
 type requester interface {
-	Value(ctx context.Context, coin, currency string) (Rate, error)
+	Value(ctx context.Context, coin, currency string) (model.Rate, error)
 }
 
 type RequesterChain struct {
@@ -19,7 +20,7 @@ func NewRequesterChain(element requester) *RequesterChain {
 	}
 }
 
-func (c *RequesterChain) Value(ctx context.Context, coin, currency string) (Rate, error) {
+func (c *RequesterChain) Value(ctx context.Context, coin, currency string) (model.Rate, error) {
 	rate, err := c.element.Value(ctx, coin, currency)
 	if err != nil {
 		if c.next != nil {
