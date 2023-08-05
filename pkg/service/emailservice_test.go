@@ -8,18 +8,6 @@ import (
 	"testing"
 )
 
-func TestServiceRate(t *testing.T) {
-	rate := 100.0
-	btcservice := service.NewService(nil, &testenv.MockRate{ExpectedRate: rate}, nil)
-	actualRate, err := btcservice.ExchangeRate()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actualRate != rate {
-		t.Errorf("unexpected rate: %f", actualRate)
-	}
-}
-
 func TestServiceSubscribeSuccessfully(t *testing.T) {
 	receiver := "abc@abc.test"
 	subscriber, err := model.NewSubscriber(receiver)
@@ -27,7 +15,7 @@ func TestServiceSubscribeSuccessfully(t *testing.T) {
 		t.Fatal(err)
 	}
 	db := &testenv.MockDB{}
-	btcservice := service.NewService(db, nil, nil)
+	btcservice := service.NewSenderService(db, nil)
 
 	err = btcservice.Subscribe(subscriber)
 	if err != nil {
@@ -49,7 +37,7 @@ func TestServiceSubscribeError(t *testing.T) {
 	}
 	expError := service.ErrIsDuplicate
 	db := &testenv.MockErrorDB{ExpectedError: expError}
-	btcservice := service.NewService(db, nil, nil)
+	btcservice := service.NewSenderService(db, nil)
 
 	err = btcservice.Subscribe(subscriber)
 	if !errors.Is(err, expError) {
@@ -59,13 +47,13 @@ func TestServiceSubscribeError(t *testing.T) {
 
 func TestServiceNotify(t *testing.T) {
 	receivers := []string{"abc@abc.test", "abc2@abc.test"}
-	rate := 100.0
+	rateValue := 100.0
+	rate := model.NewExchangeRate(rateValue, "bitcoin", "uah")
 	db := &testenv.MockDB{Memory: receivers}
-	rateProvider := &testenv.MockRate{ExpectedRate: rate}
 	sender := &testenv.MockSender{}
-	btcservice := service.NewService(db, rateProvider, sender)
+	btcservice := service.NewSenderService(db, sender)
 
-	err := btcservice.Notify()
+	err := btcservice.Notify(rate)
 
 	if err != nil {
 		t.Fatal(err)
@@ -80,7 +68,7 @@ func TestServiceNotify(t *testing.T) {
 	if sender.ReceivedValues[1] != receivers[1] {
 		t.Errorf("unexpected receiver: %s", sender.ReceivedValues[1])
 	}
-	if sender.LastRate.Value() != rate {
+	if sender.LastRate.Value() != rateValue {
 		t.Errorf("unexpected message: %s", sender.LastRate)
 	}
 }

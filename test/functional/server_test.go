@@ -36,8 +36,10 @@ func TestHTTPServer(t *testing.T) {
 	sender := email.NewSender(client, formatter)
 	rateRequester := &testenv.MockRate{ExpectedRate: 1000}
 
-	btcservice := service.NewService(receivers, rateRequester, sender)
-	handler := app.NewExchangeRateHandler(btcservice)
+	senderService := service.NewSenderService(receivers, sender)
+	rateService := service.NewRateService(senderService, rateRequester, "bitcoin", "uah")
+
+	handler := app.NewExchangeRateHandler(senderService, rateService)
 	addr := "localhost:3333"
 	startServer(handler, addr, t)
 
