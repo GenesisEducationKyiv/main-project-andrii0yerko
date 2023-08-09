@@ -13,3 +13,6 @@ clients:
     url: "https://api.coingecko.com/api/v3"
   binance:
     url: "https://www.binance.com/api/v3"
+logger:
+  rabbitmq:
+    url: amqp://admin:admin@localhost:5672/

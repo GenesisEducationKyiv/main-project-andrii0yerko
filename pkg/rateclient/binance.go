@@ -25,7 +25,7 @@ func NewBinanceRate(binanceURL string, client HTTPClient) *BinanceRate {
 	}
 }
 
-func (b BinanceRate) Value(ctx context.Context, coin, currency string) (Rate, error) {
+func (b BinanceRate) Value(ctx context.Context, coin, currency string) (model.Rate, error) {
 	ticker := b.coinToTicker(coin)
 	if ticker == "" {
 		return nil, fmt.Errorf("unknown coin %s", coin)

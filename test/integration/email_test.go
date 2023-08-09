@@ -1,7 +1,7 @@
 package core_test
 
 import (
-	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/email"
 	"bitcoinrateapp/pkg/model"
 	"bitcoinrateapp/pkg/testenv"
 	"encoding/json"
@@ -28,10 +28,10 @@ func TestEmailSendIntegration(t *testing.T) {
 	password := ""
 	host := "localhost"
 
-	auth := core.NewAuthentication(from, password, host)
-	client := core.NewSMTPClient(from, auth, host, smtpPort)
-	formatter := core.NewPlainEmailFormatter(from)
-	sender := core.NewEmailSender(client, formatter)
+	auth := email.NewAuthentication(from, password, host)
+	client := email.NewSMTPClient(from, auth, host, smtpPort)
+	formatter := email.NewPlainEmailFormatter(from)
+	sender := email.NewSender(client, formatter)
 
 	rate := model.NewExchangeRate(1000, "coin", "currency")
 

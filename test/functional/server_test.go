@@ -2,7 +2,9 @@ package functional_test
 
 import (
 	"bitcoinrateapp/pkg/app"
-	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/email"
+	"bitcoinrateapp/pkg/logger"
+	"bitcoinrateapp/pkg/service"
 	"bitcoinrateapp/pkg/testenv"
 	"errors"
 	"fmt"
@@ -29,14 +31,17 @@ func TestHTTPServer(t *testing.T) {
 	password := ""
 	host := "localhost"
 
-	auth := core.NewAuthentication(from, password, host)
-	client := core.NewSMTPClient(from, auth, host, smtpPort)
-	formatter := core.NewPlainEmailFormatter(from)
-	sender := core.NewEmailSender(client, formatter)
+	auth := email.NewAuthentication(from, password, host)
+	client := email.NewSMTPClient(from, auth, host, smtpPort)
+	formatter := email.NewPlainEmailFormatter(from)
+	sender := email.NewSender(client, formatter)
 	rateRequester := &testenv.MockRate{ExpectedRate: 1000}
 
-	service := core.NewService(receivers, rateRequester, sender)
-	handler := app.NewExchangeRateHandler(service)
+	senderService := service.NewSenderService(receivers, sender)
+	rateService := service.NewRateService(senderService, rateRequester, "bitcoin", "uah")
+
+	requestlogger := logger.NewConsoleLogger()
+	handler := app.NewExchangeRateHandler(senderService, rateService, requestlogger)
 	addr := "localhost:3333"
 	startServer(handler, addr, t)
 
@@ -106,14 +111,14 @@ func testSubscribe(addr string, t *testing.T) {
 	}
 }
 
-func testDuplicateSubscribe(addr string, db core.Storage[string], t *testing.T) {
-	email := "test@test"
-	err := db.Append(email)
+func testDuplicateSubscribe(addr string, db service.Storage[string], t *testing.T) {
+	address := "test@test"
+	err := db.Append(address)
 	if err != nil {
 		t.Errorf("Setup DB data: %s", err)
 	}
 	resp, err := http.PostForm(
-		fmt.Sprintf("http://%s/subscribe", addr), map[string][]string{"email": {email}},
+		fmt.Sprintf("http://%s/subscribe", addr), map[string][]string{"email": {address}},
 	)
 	if err != nil {
 		t.Errorf("Request error: %s", err)

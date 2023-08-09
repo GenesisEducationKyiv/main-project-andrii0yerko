@@ -1,31 +1,31 @@
-package core
+package email
 
 import (
-	"bitcoinrateapp/pkg/rateclient"
+	"bitcoinrateapp/pkg/model"
 	"log"
 )
 
 type Formatter interface {
-	Format(user string, rate rateclient.Rate) string
+	Format(user string, rate model.Rate) string
 }
 
 type Client interface {
 	Send(receiver, message string) error
 }
 
-type EmailSender struct {
+type Sender struct {
 	client    Client
 	formatter Formatter
 }
 
-func NewEmailSender(client Client, formatter Formatter) EmailSender {
-	return EmailSender{
+func NewSender(client Client, formatter Formatter) Sender {
+	return Sender{
 		client:    client,
 		formatter: formatter,
 	}
 }
 
-func (s EmailSender) SendRate(receiver string, rate rateclient.Rate) error {
+func (s Sender) SendRate(receiver string, rate model.Rate) error {
 	rfc822 := s.formatter.Format(receiver, rate)
 	err := s.client.Send(receiver, rfc822)
 	if err != nil {

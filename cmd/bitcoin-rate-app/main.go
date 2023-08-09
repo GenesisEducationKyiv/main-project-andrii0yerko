@@ -2,11 +2,16 @@ package main
 
 import (
 	"bitcoinrateapp/pkg/app"
-	"bitcoinrateapp/pkg/core"
+	"bitcoinrateapp/pkg/email"
+	"bitcoinrateapp/pkg/logger"
+	"bitcoinrateapp/pkg/rateclient"
+	"bitcoinrateapp/pkg/service"
+	"bitcoinrateapp/pkg/storage"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -25,6 +30,7 @@ func parseConfiguration() {
 	pflag.String("storage.filename", "emails.dat", "Filename for emails storage. Default is emails.dat")
 	pflag.String("server.host", "0.0.0.0", "Host to serve HTTP api. Default is 0.0.0.0")
 	pflag.String("server.port", "3333", "Post to serve HTTP api. Default is 3333")
+	pflag.String("logger.kafka.url", "", "Kafka url")
 
 	pflag.Parse()
 
@@ -57,6 +63,7 @@ func parseConfiguration() {
 		"storage.filename",
 		"server.host",
 		"server.port",
+		"logger.rabbitmq.url",
 	} {
 		if viper.GetString(field) == "" {
 			log.Fatalf(
@@ -78,13 +85,47 @@ func main() {
 	from := viper.GetString("sender.from")
 	password := viper.GetString("sender.password")
 	filename := viper.GetString("storage.filename")
+	loggerRabbitMQURL := viper.GetString("logger.rabbitmq.url")
 
 	addr := fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port"))
-	controller, err := core.NewServiceWithDefaults(coingeckoURL, binanceURL, smtpPort, smtpHost, from, password, filename)
+
+	db, err := storage.NewFileDB(filename)
 	if err != nil {
-		log.Fatalf("error creating controller: %s", err)
+		log.Fatalf("%s", err)
 	}
-	handler := app.NewExchangeRateHandler(controller)
+
+	auth := email.NewAuthentication(from, password, smtpHost)
+	client := email.NewSMTPClient(from, auth, smtpHost, smtpPort)
+	formatter := email.NewPlainEmailFormatter(from)
+	sender := email.NewSender(client, formatter)
+
+	senderService := service.NewSenderService(db, sender)
+
+	requester1 := rateclient.NewCoingeckoRate(coingeckoURL, &http.Client{})
+	requesterLogger1 := rateclient.NewLoggingRequester(requester1)
+	requesterChain := rateclient.NewRequesterChain(requesterLogger1)
+
+	requester2 := rateclient.NewBinanceRate(binanceURL, &http.Client{})
+	requesterLogger2 := rateclient.NewLoggingRequester(requester2)
+	requesterChain2 := rateclient.NewRequesterChain(requesterLogger2)
+	requesterChain.SetNext(requesterChain2)
+
+	rateService := service.NewRateService(senderService, requesterChain, "bitcoin", "uah")
+
+	if err != nil {
+		log.Fatalf("error creating service: %s", err)
+	}
+
+	requestlogger, err := logger.NewRabbitMQLogger(
+		loggerRabbitMQURL,
+		"bitcoinrateapp-logs",
+		"logs",
+		"logs-queue",
+	)
+	if err != nil {
+		log.Fatalf("error creating logger: %s", err)
+	}
+	handler := app.NewExchangeRateHandler(senderService, rateService, requestlogger)
 	server := app.NewServer(handler, addr)
 
 	err = server.Start()

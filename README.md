@@ -134,3 +134,7 @@ Please see [`./configs/template_configs.yaml`](./configs/template_configs.yaml) 
 
 ## Usage
 Documentation for the endpoints can be found in [`docs/`](./docs/) folder. Postman collection provided in [`test/`](./test/) directory as well
+
+## Architecture
+
+![](./docs/architecture.drawio.svg)

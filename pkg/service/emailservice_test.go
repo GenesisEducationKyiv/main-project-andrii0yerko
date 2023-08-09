@@ -1,24 +1,12 @@
-package core_test
+package service_test
 
 import (
-	"bitcoinrateapp/pkg/core"
 	"bitcoinrateapp/pkg/model"
+	"bitcoinrateapp/pkg/service"
 	"bitcoinrateapp/pkg/testenv"
 	"errors"
 	"testing"
 )
-
-func TestServiceRate(t *testing.T) {
-	rate := 100.0
-	service := core.NewService(nil, &testenv.MockRate{ExpectedRate: rate}, nil)
-	actualRate, err := service.ExchangeRate()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actualRate != rate {
-		t.Errorf("unexpected rate: %f", actualRate)
-	}
-}
 
 func TestServiceSubscribeSuccessfully(t *testing.T) {
 	receiver := "abc@abc.test"
@@ -27,9 +15,9 @@ func TestServiceSubscribeSuccessfully(t *testing.T) {
 		t.Fatal(err)
 	}
 	db := &testenv.MockDB{}
-	service := core.NewService(db, nil, nil)
+	btcservice := service.NewSenderService(db, nil)
 
-	err = service.Subscribe(subscriber)
+	err = btcservice.Subscribe(subscriber)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,11 +35,11 @@ func TestServiceSubscribeError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expError := core.ErrIsDuplicate
+	expError := service.ErrIsDuplicate
 	db := &testenv.MockErrorDB{ExpectedError: expError}
-	service := core.NewService(db, nil, nil)
+	btcservice := service.NewSenderService(db, nil)
 
-	err = service.Subscribe(subscriber)
+	err = btcservice.Subscribe(subscriber)
 	if !errors.Is(err, expError) {
 		t.Fatal(err)
 	}
@@ -59,13 +47,13 @@ func TestServiceSubscribeError(t *testing.T) {
 
 func TestServiceNotify(t *testing.T) {
 	receivers := []string{"abc@abc.test", "abc2@abc.test"}
-	rate := 100.0
+	rateValue := 100.0
+	rate := model.NewExchangeRate(rateValue, "bitcoin", "uah")
 	db := &testenv.MockDB{Memory: receivers}
-	rateProvider := &testenv.MockRate{ExpectedRate: rate}
 	sender := &testenv.MockSender{}
-	service := core.NewService(db, rateProvider, sender)
+	btcservice := service.NewSenderService(db, sender)
 
-	err := service.Notify()
+	err := btcservice.Notify(rate)
 
 	if err != nil {
 		t.Fatal(err)
@@ -80,7 +68,7 @@ func TestServiceNotify(t *testing.T) {
 	if sender.ReceivedValues[1] != receivers[1] {
 		t.Errorf("unexpected receiver: %s", sender.ReceivedValues[1])
 	}
-	if sender.LastRate.Value() != rate {
+	if sender.LastRate.Value() != rateValue {
 		t.Errorf("unexpected message: %s", sender.LastRate)
 	}
 }

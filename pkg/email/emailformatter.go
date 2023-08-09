@@ -1,7 +1,7 @@
-package core
+package email
 
 import (
-	"bitcoinrateapp/pkg/rateclient"
+	"bitcoinrateapp/pkg/model"
 	"fmt"
 	"strings"
 )
@@ -14,7 +14,7 @@ func NewPlainEmailFormatter(from string) PlainEmailFormatter {
 	return PlainEmailFormatter{from: from}
 }
 
-func (e PlainEmailFormatter) Format(receiver string, rate rateclient.Rate) string {
+func (e PlainEmailFormatter) Format(receiver string, rate model.Rate) string {
 	subject := e.getDescription(rate.Coin(), rate.Currency())
 	text := fmt.Sprintf("%f", rate.Value())
 	message := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\n%s", e.from, receiver, subject, text)
